@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
-import sys
-import re
+# Could perhaps get tab-completion by reimplementing keyPressEvent() for
+# the QLineEdit (and possibly keyPressEvent() for the QCompleter as well).
+# See the Tools > Custom Completer example for ideas.
+
 import ctypes
 #import subprocess
 
@@ -39,12 +41,22 @@ class InputFilter(object):
 		self.__hook.inject_press_and_release()
 
 class Command(object):
+	def __new__(cls, *args, **kwargs):
+		obj = object.__new__(cls, *args, **kwargs)
+		obj._name = None
+		obj._help = 'No help for this command.'
+		return obj
+
 	def __init__(self):
-		self._name = None
+		pass
 
 	def __name(self):
 		return self._name
 	name = property(fget = __name)
+
+	def __help(self):
+		return self._help
+	help = property(fget = __help)
 
 	def action(self, arg):
 		pass
@@ -61,11 +73,15 @@ class CommandInput(QtGui.QDialog):
 	def __init__(self):
 		QtGui.QDialog.__init__(self)
 
+		self.connect(self, QtCore.SIGNAL('rejected()'),
+			self.setRejected)
+
 		self.input = QtGui.QLineEdit()
 		self.input.setCursor(QtCore.Qt.BlankCursor)
 #		self.__comp = QtGui.QCompleter(
 #			['effort', 'cook', 'cat', 'dog', 'quit', 'quack'],
 #			self)
+#		self.__comp.popup().setTabKeyNavigation(True)
 #		self.input.setCompleter(self.__comp)
 
 		self.__lo = QtGui.QVBoxLayout()
@@ -81,6 +97,7 @@ class CommandInput(QtGui.QDialog):
 		self.__tim = QtGui.QMenu(self)
 		self.__tim.addAction(self.__qa)
 		self.__ti = QtGui.QSystemTrayIcon(self)
+		self.__ti.setToolTip(self.tr('QMK'))
 		self.__ti.setIcon(QtGui.QIcon(':images/qmk-icon.svg'))
 		self.__ti.setContextMenu(self.__tim)
 		self.__ti.show()
@@ -88,24 +105,29 @@ class CommandInput(QtGui.QDialog):
 		self.setWindowTitle(self.tr('QMK Input'))
 
 		flags = QtCore.Qt.CustomizeWindowHint \
-			| QtCore.Qt.FramelessWindowHint
+			| QtCore.Qt.FramelessWindowHint \
+			| QtCore.Qt.WindowStaysOnTopHint
 		self.setWindowFlags(flags)
 
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
-		self.cursor_pos = QtCore.QPoint(0, 0)
+		self.__cursor_pos = QtCore.QPoint(0, 0)
 
 		self.move(0, 0)
 
 	def show(self):
-		self.cursor_pos = QtGui.QCursor.pos()
+		self.wasRejected = False
+		self.__cursor_pos = QtGui.QCursor.pos()
 		QtGui.QDialog.show(self)
 		# This is a kludge.  The window should be unmovable.
-		QtGui.QCursor.setPos(10, 10)
+		#QtGui.QCursor.setPos(10, 10)
 
 	def hide(self):
 		QtGui.QDialog.hide(self)
-		QtGui.QCursor.setPos(self.cursor_pos)
+		QtGui.QCursor.setPos(self.__cursor_pos)
+
+	def setRejected(self):
+		self.wasRejected = True
 
 	def runCommand(self):
 		cmd = unicode(self.input.text()).strip()
@@ -141,6 +163,14 @@ class CommandManager(object):
 #			if arg is not None: args += arg
 #			subprocess.Popen(args)
 
+	def commandNames(self):
+		N = self.__cmd.keys()
+		N.sort()
+		return N
+
+	def command(self, name):
+		return self.__cmd[name]
+
 class Engine(object):
 	@staticmethod
 	def callback(qmk_down):
@@ -151,62 +181,13 @@ class Engine(object):
 			ci.show()
 			return
 
-		if not ci.isVisible():
-			return
-
 		ci.hide()
+
+		if ci.wasRejected:
+			return
 
 		if ci.input.text().isEmpty():
 			InputFilter.get().injectFullKeystroke()
 			return
 
 		ci.runCommand()
-
-if __name__ == '__main__':
-	class QuitCommand(Command):
-		def __init__(self):
-			self._name = 'quit'
-
-		def action(self, arg):
-			# XXX Perhaps add some fancier shutdown stuff here.
-			QtGui.qApp.quit()
-
-	app = QtGui.QApplication([])
-	app.setQuitOnLastWindowClosed(False)
-	app.setWindowIcon(QtGui.QIcon(':images/qmk-icon.svg'))
-	app.setStyleSheet('''\
-	QLineEdit {
-		background-color: #004b00;
-		color: #00ff00;
-		border-width: 2px;
-		border-style: solid;
-		border-color: #00ff00;
-		border-radius: 5px;
-		font-size: 20px;
-		font-family: "Dejavu Sans Mono";
-		padding: 3px;
-		margin: 0px;
-	}
-	QListView {
-		background-color: #004b00;
-		color: #00ff00;
-		border-width: 2px;
-		border-style: solid;
-		border-color: #00ff00;
-		border-radius: 5px;
-		font-size: 14px;
-		font-family: "Dejavu Sans Mono";
-	}
-	''')
-
-	filt = InputFilter.get()
-	ci = CommandInput.get()
-	cm = CommandManager.get()
-
-	filt.setCallback(Engine.callback)
-
-	cm.registerCommands([QuitCommand()])
-
-	cm.registerCommands(__import__('commands').commands())
-
-	sys.exit(app.exec_())
