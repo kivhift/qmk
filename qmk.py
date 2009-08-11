@@ -61,6 +61,64 @@ class Command(object):
 	def action(self, arg):
 		pass
 
+class Message(QtGui.QDialog):
+	def __init__(self, title = '', text = ''):
+		QtGui.QDialog.__init__(self)
+
+		self.setStyleSheet('''\
+QGroupBox {
+	background-color: #000000;
+	border: 2px solid #00ff00;
+	border-radius: 4px;
+	margin-top: 1em;
+	font-size: 14px;
+	font-family: "Dejavu Sans Mono";
+}
+QGroupBox::title {
+	background-color: #000000;
+	border: 2px solid #00ff00;
+	border-radius: 4px;
+	color: #00ff00;
+	subcontrol-origin: margin;
+	subcontrol-position: top left;
+	padding 3px 3px 3px 3px;
+}
+QTextEdit {
+	background-color: #000000;
+	color: #00ff00;
+	border: 2px dotted #00ff00;
+	border-radius: 4px;
+	font-family: "Dejavu Sans Mono";
+}
+''')
+		self.setWindowFlags(QtCore.Qt.CustomizeWindowHint | \
+			QtCore.Qt.FramelessWindowHint)
+		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+		#self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+		self.__gb = QtGui.QGroupBox()
+		self.__lo = QtGui.QVBoxLayout()
+		self.__lo.setContentsMargins(0, 0, 0, 0)
+		self.__lo.addWidget(self.__gb)
+		self.setLayout(self.__lo)
+
+		self.__gblo = QtGui.QVBoxLayout()
+		self.__te = QtGui.QTextEdit()
+		self.__te.setReadOnly(True)
+		self.__gblo.addWidget(self.__te)
+		self.__gb.setLayout(self.__gblo)
+
+		self.resize(300, 200)
+
+		dt = QtGui.qApp.desktop()
+		ag = dt.availableGeometry(dt.primaryScreen())
+		fg = self.frameGeometry()
+		self.move((ag.width() - ag.x()) - fg.width(),
+			(ag.height() - ag.y()) - fg.height())
+		self.setWindowTitle(title)
+		self.__gb.setTitle(title)
+		self.__te.setText(text)
+
 class CommandInput(QtGui.QDialog):
 	__instance = None
 

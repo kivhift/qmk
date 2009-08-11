@@ -63,4 +63,7 @@ cm.registerCommands([QuitCommand()])
 
 cm.registerCommands(__import__('commands').commands())
 
+m = qmk.Message('QMK Message', 'QMK has started...')
+m.show()
+
 sys.exit(app.exec_())
