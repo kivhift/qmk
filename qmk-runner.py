@@ -12,8 +12,10 @@ from PyQt4 import QtSvg
 import qmk
 
 class QuitCommand(qmk.Command):
+	'''Use this command to quit.'''
 	def __init__(self):
 		self._name = 'quit'
+		self._help = self.__doc__
 
 	def action(self, arg):
 		# XXX Perhaps add some fancier shutdown stuff here.
@@ -63,7 +65,7 @@ cm.registerCommands([QuitCommand()])
 
 cm.registerCommands(__import__('commands').commands())
 
-m = qmk.Message('QMK Message', 'QMK has started...')
+m = qmk.Message('QMK Message', 'QMK has started...', 5000)
 m.show()
 
 sys.exit(app.exec_())

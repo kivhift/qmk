@@ -3,8 +3,68 @@ import os
 import tempfile
 import urllib
 import webbrowser
+import datetime
+import calendar
+import subprocess
 
 import qmk
+
+class RunCommand(qmk.Command):
+	'''Use this command to run arbitrary processes.'''
+	def __init__(self):
+		self._name = '$'
+		self._help = self.__doc__
+
+	def action(self, arg):
+		pid = subprocess.Popen(arg).pid
+
+class CalendarCommand(qmk.Command):
+	'''Use this command to display a calendar for the current month.'''
+	def __init__(self):
+		self._name = 'cal'
+		self._help = self.__doc__
+		self.__m = None
+
+	def action(self, arg):
+		now = datetime.datetime.now()
+		year, month = now.year, now.month
+
+		if arg is not None:
+			args = arg.split()
+			if len(args) == 2:
+				try:
+					y, m = int(args[0]), int(args[1])
+					if m < 1 or m > 12:
+						y, m = m, y
+					year, month = y, m
+				except:
+					pass
+			elif len(args) == 1:
+				try:
+					y = now.year
+					m = int(args[0])
+					if m < 1 or m > 12:
+						y = m
+						m = now.month
+					year, month = y, m
+				except:
+					pass
+
+		cal = calendar.TextCalendar(firstweekday=calendar.MONDAY)
+		cm = cal.formatmonth(year, month)
+		self.__m = qmk.Message('Calendar', cm)
+		self.__m.show()
+
+class DateCommand(qmk.Command):
+	'''Use this command to quickly view the current date.'''
+	def __init__(self):
+		self._name = 'date'
+		self._help = self.__doc__
+
+	def action(self, arg):
+		now = str(datetime.datetime.now())
+		self.__m = qmk.Message('Date', str(now), 10000)
+		self.__m.show()
 
 class GoogleCommand(qmk.Command):
 	'''Use this command to google the given arguments.  A new tab will
@@ -18,7 +78,6 @@ class GoogleCommand(qmk.Command):
 		if arg is None: return
 		text = arg.strip()
 		if '' == text: return
-		Q = text.split()
 		query = self.__baseURL % urllib.quote_plus(
 			' '.join(text.split()).encode('utf-8'))
 		webbrowser.open_new_tab(query)
@@ -81,10 +140,31 @@ class HelpCommand(qmk.Command):
 		webbrowser.open_new_tab('file:%s' % urllib.pathname2url(
 			f.name))
 
+class OctopartCommand(qmk.Command):
+	'''Use this command to look up a part on Octopart.  A new tab will
+	be opened in the default web browser that contains the search
+	results.'''
+	def __init__(self):
+		self._name = 'octopart'
+		self._help = self.__doc__
+		self.__baseURL = 'http://octopart.com/parts/search?q=%s&js=on'
+
+	def action(self, arg):
+		if arg is None: return
+		text = arg.strip()
+		if '' == text: return
+		query = self.__baseURL % urllib.quote_plus(
+			' '.join(text.split()).encode('utf-8'))
+		webbrowser.open_new_tab(query)
+
 def commands():
 	cmds = []
 	cmds.append(GoogleCommand())
 	cmds.append(BeolingusCommand())
 	cmds.append(BrowseCommand())
 	cmds.append(HelpCommand())
+	cmds.append(CalendarCommand())
+	cmds.append(DateCommand())
+	cmds.append(RunCommand())
+	cmds.append(OctopartCommand())
 	return cmds

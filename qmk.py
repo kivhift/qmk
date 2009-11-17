@@ -62,7 +62,7 @@ class Command(object):
 		pass
 
 class Message(QtGui.QDialog):
-	def __init__(self, title = '', text = ''):
+	def __init__(self, title = 'QMK Message', text = '', ms_timeout = 0):
 		QtGui.QDialog.__init__(self)
 
 		self.setStyleSheet('''\
@@ -94,6 +94,7 @@ QTextEdit {
 		self.setWindowFlags(QtCore.Qt.CustomizeWindowHint | \
 			QtCore.Qt.FramelessWindowHint)
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+		self.setWindowOpacity(0.8)
 		#self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		self.__gb = QtGui.QGroupBox()
@@ -118,6 +119,13 @@ QTextEdit {
 		self.setWindowTitle(title)
 		self.__gb.setTitle(title)
 		self.__te.setText(text)
+		self.__timeout = ms_timeout
+
+	def show(self):
+		if self.__timeout > 0:
+			QtCore.QTimer.singleShot(self.__timeout, self,
+				QtCore.SLOT('hide()'))
+		super(QtGui.QDialog, self).show()
 
 class CommandInput(QtGui.QDialog):
 	__instance = None
@@ -168,21 +176,26 @@ class CommandInput(QtGui.QDialog):
 		self.setWindowFlags(flags)
 
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+		self.setWindowOpacity(0.85)
 
 		self.__cursor_pos = QtCore.QPoint(0, 0)
 
 		self.move(0, 0)
 
+		dt = QtGui.qApp.desktop()
+		ag = dt.availableGeometry(dt.primaryScreen())
+		self.resize(ag.width() / 3, 0)
+
 	def show(self):
 		self.wasRejected = False
-		self.__cursor_pos = QtGui.QCursor.pos()
+###		self.__cursor_pos = QtGui.QCursor.pos()
 		QtGui.QDialog.show(self)
 		# This is a kludge.  The window should be unmovable.
 		#QtGui.QCursor.setPos(10, 10)
 
 	def hide(self):
 		QtGui.QDialog.hide(self)
-		QtGui.QCursor.setPos(self.__cursor_pos)
+###		QtGui.QCursor.setPos(self.__cursor_pos)
 
 	def setRejected(self):
 		self.wasRejected = True
@@ -193,6 +206,7 @@ class CommandInput(QtGui.QDialog):
 
 		part = cmd.split(None, 1)
 
+		# Check arg count here, etc.
 		CommandManager.get().runCommand(part[0],
 			part[1] if len(part) > 1 else None)
 
