@@ -130,12 +130,13 @@ class HelpCommand(qmk.Command):
 		f.write('<html><head><title>QMK Help</title></head><body>')
 		f.write('<h1>QMK Command Help</h1>')
 		cm = qmk.CommandManager.get()
+		f.write('<table border="1"><tr><th>Name</th><th>Help</th></tr>')
 		for name in cm.commandNames():
 			cmd = cm.command(name)
 			ht = cmd.help
-			f.write('<b>%s</b><p>%s</p>' % (name, ht.encode(
-				'ascii', 'xmlcharrefreplace')))
-		f.write('</body></html>\n')
+			f.write('<tr><td>%s</td><td>%s</td></tr>' % (name,
+				ht.encode('ascii', 'xmlcharrefreplace')))
+		f.write('</table></body></html>\n')
 		f.close()
 		webbrowser.open_new_tab('file:%s' % urllib.pathname2url(
 			f.name))
