@@ -55,17 +55,21 @@ QListView {
 }
 ''')
 
+# Make sure that these are instantiated and that they stay around.
 filt = qmk.InputFilter.get()
+msg = qmk.Message.get()
 ci = qmk.CommandInput.get()
 cm = qmk.CommandManager.get()
 
-filt.setCallback(qmk.Engine.callback)
+filt.setQMKKeyboardCallback(qmk.Engine.QMKCallback)
+filt.enableQMKKeyboardCallback()
+filt.setKeyboardCallback(qmk.Engine.hideMessageCallback)
+filt.setMouseCallback(qmk.Engine.hideMessageCallback)
 
 cm.registerCommands([QuitCommand()])
 
 cm.registerCommands(__import__('commands').commands())
 
-m = qmk.Message('QMK Message', 'QMK has started...', 5000)
-m.show()
+qmk.Message.get()('QMK has started...')
 
 sys.exit(app.exec_())

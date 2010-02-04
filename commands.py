@@ -6,8 +6,23 @@ import webbrowser
 import datetime
 import calendar
 import subprocess
+import math
 
 import qmk
+
+class EvalCommand(qmk.Command):
+	'''Use this command to pass arguments to Python's eval() builtin.'''
+	def __init__(self):
+		self._name = 'eval'
+		self._help = self.__doc__
+
+	def action(self, arg):
+		if arg is None: return
+		try:
+			result = eval(arg)
+		except:
+			return
+		qmk.Message.get()(arg + ' --> ' + str(result))
 
 class RunCommand(qmk.Command):
 	'''Use this command to run arbitrary processes.'''
@@ -52,8 +67,7 @@ class CalendarCommand(qmk.Command):
 
 		cal = calendar.TextCalendar(firstweekday=calendar.MONDAY)
 		cm = cal.formatmonth(year, month)
-		self.__m = qmk.Message('Calendar', cm)
-		self.__m.show()
+		qmk.Message().get()(cm)
 
 class DateCommand(qmk.Command):
 	'''Use this command to quickly view the current date.'''
@@ -63,8 +77,7 @@ class DateCommand(qmk.Command):
 
 	def action(self, arg):
 		now = str(datetime.datetime.now())
-		self.__m = qmk.Message('Date', str(now), 10000)
-		self.__m.show()
+		qmk.Message().get()(now)
 
 class GoogleCommand(qmk.Command):
 	'''Use this command to google the given arguments.  A new tab will
@@ -187,4 +200,5 @@ def commands():
 	cmds.append(RunCommand())
 	cmds.append(OctopartCommand())
 	cmds.append(WundergroundCommand())
+	cmds.append(EvalCommand())
 	return cmds

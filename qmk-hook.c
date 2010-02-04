@@ -8,8 +8,11 @@ typedef enum {
 
 static DWORD qmk_code = VK_CAPITAL;
 static qmk_state_t qmk_state = qmk_up;
+static hook_callback_t qmkkbhcb = (hook_callback_t) 0;
 static hook_callback_t kbhcb = (hook_callback_t) 0;
 static HHOOK kb_hook = (HHOOK) 0;
+static hook_callback_t mhcb = (hook_callback_t) 0;
+static HHOOK m_hook = (HHOOK) 0;
 static HINSTANCE dll_instance;
 
 static LRESULT CALLBACK keyboard_callback(int hook_code, WPARAM msg_id,
@@ -20,6 +23,10 @@ static LRESULT CALLBACK keyboard_callback(int hook_code, WPARAM msg_id,
 
 	if(HC_ACTION != hook_code) {
 		goto call_next_hook;
+	}
+
+	if(kbhcb && (qmk_up == qmk_state)) {
+		(*kbhcb)(qmk_state);
 	}
 
 	hs = (PKBDLLHOOKSTRUCT) msg_data;
@@ -38,16 +45,16 @@ static LRESULT CALLBACK keyboard_callback(int hook_code, WPARAM msg_id,
 	case qmk_up:
 		if(!transition_up) {
 			qmk_state = qmk_down;
-			if(kbhcb) {
-				(*kbhcb)(qmk_state);
+			if(qmkkbhcb) {
+				(*qmkkbhcb)(qmk_state);
 			}
 		}
 		break;
 	case qmk_down:
 		if(transition_up) {
 			qmk_state = qmk_up;
-			if(kbhcb) {
-				(*kbhcb)(qmk_state);
+			if(qmkkbhcb) {
+				(*qmkkbhcb)(qmk_state);
 			}
 		}
 		break;
@@ -58,13 +65,27 @@ static LRESULT CALLBACK keyboard_callback(int hook_code, WPARAM msg_id,
 	return 1;
 
 call_next_hook:
-	return CallNextHookEx(0, hook_code, msg_id, msg_data);
+	return CallNextHookEx(kb_hook, hook_code, msg_id, msg_data);
+}
+
+static LRESULT CALLBACK mouse_callback(int hook_code, WPARAM msg_id,
+	LPARAM msg_data)
+{
+	if(HC_ACTION != hook_code) {
+		goto call_next_hook;
+	}
+
+	if(mhcb && (qmk_up == qmk_state)) {
+		(*mhcb)(qmk_state);
+	}
+
+call_next_hook:
+	return CallNextHookEx(m_hook, hook_code, msg_id, msg_data);
 }
 
 int install_keyboard_hook(void)
 {
-	HOOKPROC addr;
-	addr = keyboard_callback;
+	HOOKPROC addr = keyboard_callback;
 
 	kb_hook = SetWindowsHookEx(WH_KEYBOARD_LL, addr, dll_instance, 0);
 	if(!kb_hook) {
@@ -82,9 +103,39 @@ void uninstall_keyboard_hook(void)
 	}
 }
 
+void set_qmk_keyboard_hook_callback(hook_callback_t cb)
+{
+	qmkkbhcb = cb;
+}
+
 void set_keyboard_hook_callback(hook_callback_t cb)
 {
 	kbhcb = cb;
+}
+
+int install_mouse_hook(void)
+{
+	HOOKPROC addr = mouse_callback;
+
+	m_hook = SetWindowsHookEx(WH_MOUSE_LL, addr, dll_instance, 0);
+	if(!m_hook) {
+		return 1;
+	}
+
+	return 0;
+}
+
+void uninstall_mouse_hook(void)
+{
+	if(m_hook) {
+		UnhookWindowsHookEx(m_hook);
+		m_hook = (HHOOK) 0;
+	}
+}
+
+void set_mouse_hook_callback(hook_callback_t cb)
+{
+	mhcb = cb;
 }
 
 void inject_press_and_release(void)
@@ -112,6 +163,7 @@ BOOL WINAPI DllMain(HINSTANCE HI, DWORD reason, LPVOID reserved)
 		break;
 	case DLL_PROCESS_DETACH:
 		uninstall_keyboard_hook();
+		uninstall_mouse_hook();
 		break;
 	default:
 		break;

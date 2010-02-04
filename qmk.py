@@ -5,7 +5,6 @@
 # See the Tools > Custom Completer example for ideas.
 
 import ctypes
-#import subprocess
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
@@ -29,13 +28,42 @@ class InputFilter(object):
 		# void F(int arg);
 		self.__cbp = ctypes.CFUNCTYPE(None, ctypes.c_int)
 		self.__hook = ctypes.CDLL(filter_lib)
-		self.__cb = None
+		self.__qmkkbcb = None
+		self.__kbcb = None
+		self.__mcb = None
 		if self.__hook.install_keyboard_hook():
-			raise InputFilterError('Had trouble installing hook.')
-	
-	def setCallback(self, cb):
-		self.__cb = self.__cbp(cb)
-		self.__hook.set_keyboard_hook_callback(self.__cb)
+			raise InputFilterError(
+				'Had trouble installing keyboard hook.')
+		if self.__hook.install_mouse_hook():
+			raise InputFilterError(
+				'Had trouble installing mouse hook.')
+
+	def setQMKKeyboardCallback(self, cb):
+		self.__qmkkbcb = self.__cbp(cb)
+
+	def enableQMKKeyboardCallback(self):
+		self.__hook.set_qmk_keyboard_hook_callback(self.__qmkkbcb)
+
+	def disableQMKKeyboardCallback(self):
+		self.__hook.set_qmk_keyboard_hook_callback(None)
+
+	def setKeyboardCallback(self, cb):
+		self.__kbcb = self.__cbp(cb)
+
+	def enableKeyboardCallback(self):
+		self.__hook.set_keyboard_hook_callback(self.__kbcb)
+
+	def disableKeyboardCallback(self):
+		self.__hook.set_keyboard_hook_callback(None)
+
+	def setMouseCallback(self, cb):
+		self.__mcb = self.__cbp(cb)
+
+	def enableMouseCallback(self):
+		self.__hook.set_mouse_hook_callback(self.__mcb)
+
+	def disableMouseCallback(self):
+		self.__hook.set_mouse_hook_callback(None)
 	
 	def injectFullKeystroke(self):
 		self.__hook.inject_press_and_release()
@@ -61,28 +89,23 @@ class Command(object):
 	def action(self, arg):
 		pass
 
-class Message(QtGui.QDialog):
-	def __init__(self, title = 'QMK Message', text = '', ms_timeout = 0):
-		QtGui.QDialog.__init__(self)
+class Message(QtGui.QWidget):
+	__instance = None
+
+	@classmethod
+	def get(cls):
+		if cls.__instance is None:
+			cls.__instance = cls()
+		return cls.__instance
+
+	def __call__(self, text):
+		self.setText(text)
+		self.show()
+
+	def __init__(self):
+		QtGui.QWidget.__init__(self)
 
 		self.setStyleSheet('''\
-QGroupBox {
-	background-color: #000000;
-	border: 2px solid #00ff00;
-	border-radius: 4px;
-	margin-top: 1em;
-	font-size: 14px;
-	font-family: "Dejavu Sans Mono";
-}
-QGroupBox::title {
-	background-color: #000000;
-	border: 2px solid #00ff00;
-	border-radius: 4px;
-	color: #00ff00;
-	subcontrol-origin: margin;
-	subcontrol-position: top left;
-	padding 3px 3px 3px 3px;
-}
 QTextEdit {
 	background-color: #000000;
 	color: #00ff00;
@@ -91,41 +114,35 @@ QTextEdit {
 	font-family: "Dejavu Sans Mono";
 }
 ''')
-		self.setWindowFlags(QtCore.Qt.CustomizeWindowHint | \
+		self.setWindowFlags(QtCore.Qt.ToolTip |
+			QtCore.Qt.CustomizeWindowHint |
 			QtCore.Qt.FramelessWindowHint)
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 		self.setWindowOpacity(0.8)
-		#self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-		self.__gb = QtGui.QGroupBox()
 		self.__lo = QtGui.QVBoxLayout()
 		self.__lo.setContentsMargins(0, 0, 0, 0)
-		self.__lo.addWidget(self.__gb)
-		self.setLayout(self.__lo)
-
-		self.__gblo = QtGui.QVBoxLayout()
 		self.__te = QtGui.QTextEdit()
 		self.__te.setReadOnly(True)
-		self.__gblo.addWidget(self.__te)
-		self.__gb.setLayout(self.__gblo)
+		self.__lo.addWidget(self.__te)
+		self.setLayout(self.__lo)
 
-		self.resize(300, 200)
+		self.resize(324, 200)
 
 		dt = QtGui.qApp.desktop()
 		ag = dt.availableGeometry(dt.primaryScreen())
 		fg = self.frameGeometry()
-		self.move((ag.width() - ag.x()) - fg.width(),
-			(ag.height() - ag.y()) - fg.height())
-		self.setWindowTitle(title)
-		self.__gb.setTitle(title)
+		self.move(((ag.width() / 2) - ag.x()) - (fg.width() / 2),
+			((ag.height() / 2) - ag.y()) - (fg.height() / 2))
+
+	def setText(self, text):
 		self.__te.setText(text)
-		self.__timeout = ms_timeout
 
 	def show(self):
-		if self.__timeout > 0:
-			QtCore.QTimer.singleShot(self.__timeout, self,
-				QtCore.SLOT('hide()'))
-		super(QtGui.QDialog, self).show()
+		filt = InputFilter.get()
+		filt.enableKeyboardCallback()
+		filt.enableMouseCallback()
+		QtGui.QWidget.show(self)
 
 class CommandInput(QtGui.QDialog):
 	__instance = None
@@ -231,9 +248,6 @@ class CommandManager(object):
 			self.__cmd[name].action(arg)
 		else:
 			print 'Not found: "%s" <-- "%s"' % (name, arg)
-#			args = [name]
-#			if arg is not None: args += arg
-#			subprocess.Popen(args)
 
 	def commandNames(self):
 		N = self.__cmd.keys()
@@ -245,7 +259,7 @@ class CommandManager(object):
 
 class Engine(object):
 	@staticmethod
-	def callback(qmk_down):
+	def QMKCallback(qmk_down):
 		ci = CommandInput.get()
 
 		if qmk_down:
@@ -259,7 +273,18 @@ class Engine(object):
 			return
 
 		if ci.input.text().isEmpty():
-			InputFilter.get().injectFullKeystroke()
+			#InputFilter.get().injectFullKeystroke()
 			return
 
 		ci.runCommand()
+
+	@staticmethod
+	def hideMessageCallback(qmk_down):
+		if qmk_down: return
+
+		msg = Message.get()
+		filt = InputFilter.get()
+		if msg.isVisible():
+			filt.disableKeyboardCallback()
+			filt.disableMouseCallback()
+			msg.hide()
