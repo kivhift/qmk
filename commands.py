@@ -106,8 +106,8 @@ class BeolingusCommand(qmk.Command):
 	def __init__(self):
 		self._name = 'beolingus'
 		self._help = self.__doc__
-		self.__baseURL = 'http://dict.tu-chemnitz.de/dings.cgi' \
-			'?lang=en&service=deen&opterrors=0&optpro=0&query=%s'
+		self.__baseURL = 'http://dict.tu-chemnitz.de/?query=%s' \
+			'&service=deen&mini=1'
 
 	def action(self, arg):
 		if arg is None: return
