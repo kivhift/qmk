@@ -11,7 +11,7 @@ import math
 import qmk
 
 class EvalCommand(qmk.Command):
-	'''Use this command to pass arguments to Python's eval() builtin.'''
+	'''Pass arguments to Python's eval() builtin.'''
 	def __init__(self):
 		self._name = 'eval'
 		self._help = self.__doc__
@@ -25,7 +25,7 @@ class EvalCommand(qmk.Command):
 		qmk.Message.get()(arg + ' --> ' + str(result))
 
 class RunCommand(qmk.Command):
-	'''Use this command to run arbitrary processes.'''
+	'''Run arbitrary processes.'''
 	def __init__(self):
 		self._name = '$'
 		self._help = self.__doc__
@@ -34,11 +34,16 @@ class RunCommand(qmk.Command):
 		pid = subprocess.Popen(arg).pid
 
 class CalendarCommand(qmk.Command):
-	'''Use this command to display a calendar for the current month.'''
+	'''Display a calendar for a given month.  With no arguments, the
+	current year and month are used.  If one argument is given, it is
+	used as the month with the current year unless the month is invalid
+	in which case the current month is used with the argument as the
+	year.  If two arguments are given, they are assumed to be the year
+	and month, respectively, unless the month is invalid in which case
+	the arguments are used as month and year, respectively.'''
 	def __init__(self):
 		self._name = 'cal'
 		self._help = self.__doc__
-		self.__m = None
 
 	def action(self, arg):
 		now = datetime.datetime.now()
@@ -70,7 +75,7 @@ class CalendarCommand(qmk.Command):
 		qmk.Message().get()(cm)
 
 class DateCommand(qmk.Command):
-	'''Use this command to quickly view the current date.'''
+	'''View the current date.'''
 	def __init__(self):
 		self._name = 'date'
 		self._help = self.__doc__
@@ -80,8 +85,8 @@ class DateCommand(qmk.Command):
 		qmk.Message().get()(now)
 
 class GoogleCommand(qmk.Command):
-	'''Use this command to google the given arguments.  A new tab will
-	be opened in the default web browser with the Google search results.'''
+	'''Google the given arguments.  A new tab will be opened in the
+	default web browser with the Google search results.'''
 	def __init__(self):
 		self._name = 'google'
 		self._help = self.__doc__
@@ -96,9 +101,8 @@ class GoogleCommand(qmk.Command):
 		webbrowser.open_new_tab(query)
 
 class BeolingusCommand(qmk.Command):
-	'''Use this command to look up a German word using Beolingus.  A
-	new tab will be opened in the default web browser with the search
-	results.'''
+	'''Look up a German word using Beolingus.  A new tab will be opened
+	in the default web browser with the search results.'''
 	def __init__(self):
 		self._name = 'beolingus'
 		self._help = self.__doc__
@@ -114,8 +118,7 @@ class BeolingusCommand(qmk.Command):
 		webbrowser.open_new_tab(query)
 
 class BrowseCommand(qmk.Command):
-	'''Use this command to open the supplied URL in the default web
-	browser.'''
+	'''Open the supplied URL in the default web browser.'''
 	def __init__(self):
 		self._name = 'browse'
 		self._help = self.__doc__
@@ -125,9 +128,9 @@ class BrowseCommand(qmk.Command):
 		webbrowser.open_new_tab(arg)
 
 class HelpCommand(qmk.Command):
-	'''Use this command to view help for all available commands.  A new
-	tab will be opened in the default web browser that contains the
-	help for all of the commands that are registered.'''
+	'''View help for all available commands.  A new tab will be opened
+	in the default web browser that contains the help for all of the
+	commands that are registered.'''
 	def __init__(self):
 		self._name = 'help'
 		self._help = self.__doc__
@@ -155,9 +158,8 @@ class HelpCommand(qmk.Command):
 			f.name))
 
 class OctopartCommand(qmk.Command):
-	'''Use this command to look up a part on Octopart.  A new tab will
-	be opened in the default web browser that contains the search
-	results.'''
+	'''Look up a part on Octopart.  A new tab will be opened in the
+	default web browser that contains the search results.'''
 	def __init__(self):
 		self._name = 'octopart'
 		self._help = self.__doc__
@@ -172,10 +174,9 @@ class OctopartCommand(qmk.Command):
 		webbrowser.open_new_tab(query)
 
 class WundergroundCommand(qmk.Command):
-	'''Use this command to look up the current weather conditions for a
-	given ZIP code (or airport code) using Weather Underground.  A new
-	tab will be opened in the default web browser that contains the
-	search results.'''
+	'''Look up the current weather conditions for a given ZIP code (or
+	airport code) using Weather Underground.  A new tab will be opened
+	in the default web browser that contains the search results.'''
 	def __init__(self):
 		self._name = 'wunderground'
 		self._help = self.__doc__
