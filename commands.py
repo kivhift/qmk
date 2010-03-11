@@ -27,7 +27,7 @@ class EvalCommand(qmk.Command):
 class RunCommand(qmk.Command):
 	'''Run arbitrary processes.'''
 	def __init__(self):
-		self._name = '$'
+		self._name = '!'
 		self._help = self.__doc__
 
 	def action(self, arg):
