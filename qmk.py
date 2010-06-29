@@ -246,6 +246,9 @@ class CommandManager(object):
     def runCommand(self, name, arg):
         if self.__cmd.has_key(name):
             self.__cmd[name].action(arg)
+        elif self.__cmd.has_key('eval'):
+            self.__cmd['eval'].action(
+                '%s%s' % (name, '' if arg is None else ' ' + arg))
         else:
             print 'Not found: "%s" <-- "%s"' % (name, arg)
 
