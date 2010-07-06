@@ -11,6 +11,7 @@ static qmk_state_t qmk_state = qmk_up;
 static hook_callback_t qmkkbhcb = (hook_callback_t) 0;
 static hook_callback_t kbhcb = (hook_callback_t) 0;
 static HHOOK kb_hook = (HHOOK) 0;
+static HWND kbwid = 0;
 static hook_callback_t mhcb = (hook_callback_t) 0;
 static HHOOK m_hook = (HHOOK) 0;
 static HINSTANCE dll_instance;
@@ -32,6 +33,13 @@ static LRESULT CALLBACK keyboard_callback(int hook_code, WPARAM msg_id,
 	hs = (PKBDLLHOOKSTRUCT) msg_data;
 
 	if(qmk_code != hs->vkCode) {
+		if(kbwid && (WM_KEYDOWN == msg_id) && (qmk_down == qmk_state)) {
+			if(GetForegroundWindow() != kbwid) {
+				if(!SetForegroundWindow(kbwid)) {
+					return 1;
+				}
+			}
+		}
 		goto call_next_hook;
 	}
 
@@ -153,6 +161,11 @@ int set_key_code(DWORD code)
 	qmk_code = code;
 
 	return 0;
+}
+
+void set_keyboard_window_id(HWND wid)
+{
+	kbwid = wid;
 }
 
 BOOL WINAPI DllMain(HINSTANCE HI, DWORD reason, LPVOID reserved)
