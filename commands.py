@@ -10,6 +10,18 @@ import math
 
 import qmk
 
+class ClipboardCommand(qmk.Command):
+    '''Show the contents of the clipboard or set it to the given argument.'''
+    def __init__(self):
+        self._name = 'clipboard'
+        self._help = self.__doc__
+
+    def action(self, arg):
+        if arg is None:
+            qmk.Message.get()(qmk.Clipboard.text())
+        else:
+            qmk.Clipboard.setText(arg)
+
 class EvalCommand(qmk.Command):
     '''Pass arguments to Python's eval() builtin.'''
     def __init__(self):
@@ -17,12 +29,17 @@ class EvalCommand(qmk.Command):
         self._help = self.__doc__
 
     def action(self, arg):
-        if arg is None: return
+        if arg is None:
+            arg = qmk.Clipboard.text()
+            if '' == arg: return
         try:
-            result = eval(arg)
+            result = str(eval(arg))
         except:
+            qmk.ErrorMessage.get()('Had trouble eval()ing: %s' % arg)
             return
-        qmk.Message.get()(arg + ' --> ' + str(result))
+
+        qmk.Clipboard.setText(result)
+        qmk.Message.get()(arg + ' --> ' + result)
 
 class RunCommand(qmk.Command):
     '''Run arbitrary processes.'''
@@ -243,4 +260,5 @@ def commands():
     cmds.append(WundergroundCommand())
     cmds.append(EvalCommand())
     cmds.append(ConvertCommand())
+    cmds.append(ClipboardCommand())
     return cmds
