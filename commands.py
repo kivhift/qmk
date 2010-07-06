@@ -29,13 +29,15 @@ class EvalCommand(qmk.Command):
         self._help = self.__doc__
 
     def action(self, arg):
+        from math import *
         if arg is None:
-            arg = qmk.Clipboard.text()
+            arg = str(qmk.Clipboard.text())
             if '' == arg: return
         try:
             result = str(eval(arg))
-        except:
-            qmk.ErrorMessage.get()('Had trouble eval()ing: %s' % arg)
+        except Exception, e:
+            qmk.ErrorMessage.get()('Had trouble eval()ing "%s": %s' % (
+                arg, str(e)))
             return
 
         qmk.Clipboard.setText(result)
