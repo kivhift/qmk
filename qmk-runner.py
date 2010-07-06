@@ -65,6 +65,7 @@ filt.setQMKKeyboardCallback(qmk.Engine.QMKCallback)
 filt.enableQMKKeyboardCallback()
 filt.setKeyboardCallback(qmk.Engine.hideMessageCallback)
 filt.setMouseCallback(qmk.Engine.hideMessageCallback)
+filt.setKeyboardWindowId(int(ci.winId()))
 
 cm.registerCommands([QuitCommand()])
 
