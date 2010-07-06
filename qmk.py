@@ -5,6 +5,7 @@
 # See the Tools > Custom Completer example for ideas.
 
 import ctypes
+import time
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
@@ -55,6 +56,9 @@ class InputFilter(object):
 
     def disableKeyboardCallback(self):
         self.__hook.set_keyboard_hook_callback(None)
+
+    def setKeyboardWindowId(self, wid):
+        self.__hook.set_keyboard_window_id(wid)
 
     def setMouseCallback(self, cb):
         self.__mcb = self.__cbp(cb)
@@ -144,6 +148,55 @@ QTextEdit {
         filt.enableMouseCallback()
         QtGui.QWidget.show(self)
 
+class ErrorMessage(QtGui.QDialog):
+    __instance = None
+
+    @classmethod
+    def get(cls):
+        if cls.__instance is None:
+            cls.__instance = cls()
+        return cls.__instance
+
+    def __call__(self, text):
+        self.append(text)
+        self.show()
+
+    def __init__(self):
+        QtGui.QDialog.__init__(self)
+
+        self.setStyleSheet('''\
+QTextEdit {
+    background-color: #000000;
+    color: #ffff00;
+    border: 2px dotted #00ff00;
+    border-radius: 4px;
+    font-family: "Dejavu Sans Mono";
+}
+''')
+        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint
+            | QtCore.Qt.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.setWindowOpacity(0.8)
+        self.setWindowTitle('QMK Errors')
+
+        self.__lo = QtGui.QVBoxLayout()
+        self.__lo.setContentsMargins(0, 0, 0, 0)
+        self.__te = QtGui.QTextEdit()
+        self.__te.setReadOnly(True)
+        self.__lo.addWidget(self.__te)
+        self.setLayout(self.__lo)
+
+        dt = QtGui.qApp.desktop()
+        ag = dt.availableGeometry(dt.primaryScreen())
+
+        self.resize(ag.width() / 2, int(ag.width() / (1.0 + 5.0**0.5)))
+        fg = self.frameGeometry()
+        self.move(ag.width() - fg.width(), ag.height() - fg.height())
+
+    def append(self, text):
+        self.__te.append('%s: %s' % (
+            time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), text))
+
 class CommandInput(QtGui.QDialog):
     __instance = None
 
@@ -201,7 +254,7 @@ class CommandInput(QtGui.QDialog):
 
         dt = QtGui.qApp.desktop()
         ag = dt.availableGeometry(dt.primaryScreen())
-        self.resize(ag.width() / 3, 0)
+        self.resize(ag.width() / 2, 0)
 
     def show(self):
         self.wasRejected = False
@@ -244,13 +297,16 @@ class CommandManager(object):
             self.__cmd[cmd.name] = cmd
 
     def runCommand(self, name, arg):
-        if self.__cmd.has_key(name):
-            self.__cmd[name].action(arg)
-        elif self.__cmd.has_key('eval'):
-            self.__cmd['eval'].action(
-                '%s%s' % (name, '' if arg is None else ' ' + arg))
-        else:
-            print 'Not found: "%s" <-- "%s"' % (name, arg)
+        try:
+            if self.__cmd.has_key(name):
+                self.__cmd[name].action(arg)
+            elif self.__cmd.has_key('eval'):
+                self.__cmd['eval'].action(
+                    '%s%s' % (name, '' if arg is None else ' ' + arg))
+            else:
+                ErrorMessage.get()('Not found: "%s" <-- "%s"' % (name, arg))
+        except Exception, e:
+            ErrorMessage.get()('Problem: %s' % str(e))
 
     def commandNames(self):
         N = self.__cmd.keys()
@@ -291,3 +347,12 @@ class Engine(object):
             filt.disableKeyboardCallback()
             filt.disableMouseCallback()
             msg.hide()
+
+class Clipboard(object):
+    @staticmethod
+    def setText(text):
+        QtGui.qApp.clipboard().setText(text)
+
+    @staticmethod
+    def text():
+        return QtGui.qApp.clipboard().text()
