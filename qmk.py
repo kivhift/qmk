@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-# Could perhaps get tab-completion by reimplementing keyPressEvent() for
-# the QLineEdit (and possibly keyPressEvent() for the QCompleter as well).
-# See the Tools > Custom Completer example for ideas.
-
 import ctypes
 import time
 
@@ -197,6 +193,51 @@ QTextEdit {
         self.__te.append('%s: %s' % (
             time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), text))
 
+class Completer(QtGui.QCompleter):
+    def setCurrentIndex(self, index):
+        pu = self.popup()
+        sm = pu.selectionModel()
+        if not index.isValid():
+            sm.clear()
+        else:
+            sm.setCurrentIndex(index, QtGui.QItemSelectionModel.Select
+                | QtGui.QItemSelectionModel.Rows)
+        ci = sm.currentIndex()
+        if not ci.isValid():
+            pu.scrollToTop()
+        else:
+            pu.scrollTo(ci, QtGui.QAbstractItemView.PositionAtTop)
+
+    def eventFilter(self, obj, ev):
+        if QtCore.QEvent.KeyPress == ev.type():
+            pu = self.popup()
+            if pu and pu.isVisible():
+                ci = pu.currentIndex()
+                cm = self.completionModel()
+                ek = ev.key()
+                if ek == QtCore.Qt.Key_Tab:
+                    if not ci.isValid():
+                        fi = cm.index(0, self.completionColumn())
+                        self.setCurrentIndex(fi)
+                        return True
+                    elif ci.row() == cm.rowCount() - 1:
+                        if self.wrapAround():
+                            self.setCurrentIndex(QtCore.QModelIndex())
+                        return True
+                    return False
+                elif ek == QtCore.Qt.Key_Backtab:
+                    if not ci.isValid():
+                        rc = cm.rowCount()
+                        li = cm.index(rc - 1, self.completionColumn())
+                        self.setCurrentIndex(li)
+                        return True
+                    elif 0 == ci.row():
+                        if self.wrapAround():
+                            self.setCurrentIndex(QtCore.QModelIndex())
+                        return True
+                    return False
+        return QtGui.QCompleter.eventFilter(self, obj, ev)
+
 class CommandInput(QtGui.QDialog):
     __instance = None
 
@@ -214,11 +255,6 @@ class CommandInput(QtGui.QDialog):
 
         self.input = QtGui.QLineEdit()
         self.input.setCursor(QtCore.Qt.BlankCursor)
-#       self.__comp = QtGui.QCompleter(
-#           ['effort', 'cook', 'cat', 'dog', 'quit', 'quack'],
-#           self)
-#       self.__comp.popup().setTabKeyNavigation(True)
-#       self.input.setCompleter(self.__comp)
 
         self.__lo = QtGui.QVBoxLayout()
         self.__lo.setContentsMargins(0, 0, 0, 0)
@@ -279,6 +315,15 @@ class CommandInput(QtGui.QDialog):
         # Check arg count here, etc.
         CommandManager.get().runCommand(part[0],
             part[1] if len(part) > 1 else None)
+
+    def updateCompletions(self):
+        cn = CommandManager.get().commandNames()
+        if 0 == len(cn):
+            self.__comp = None
+        else:
+            self.__comp = Completer(cn)
+            self.__comp.popup().setTabKeyNavigation(True)
+        self.input.setCompleter(self.__comp)
 
 class CommandManager(object):
     __instance = None

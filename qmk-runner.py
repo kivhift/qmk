@@ -70,6 +70,7 @@ filt.setKeyboardWindowId(int(ci.winId()))
 cm.registerCommands([QuitCommand()])
 
 cm.registerCommands(__import__('commands').commands())
+ci.updateCompletions()
 
 qmk.Message.get()('QMK has started...')
 
