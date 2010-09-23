@@ -6,7 +6,9 @@ import webbrowser
 import datetime
 import calendar
 import subprocess
-import math
+
+# For eval command
+from math import *
 
 import qmk
 
@@ -29,7 +31,6 @@ class EvalCommand(qmk.Command):
         self._help = self.__doc__
 
     def action(self, arg):
-        from math import *
         if arg is None:
             arg = str(qmk.Clipboard.text())
             if '' == arg: return
@@ -90,7 +91,26 @@ class CalendarCommand(qmk.Command):
                     pass
 
         cal = calendar.TextCalendar(firstweekday=calendar.MONDAY)
-        cm = cal.formatmonth(year, month)
+        mark = ' '
+        if year == now.year and month == now.month:
+            mark = ':'
+        cm = '%s\n%s\n' % (cal.formatmonthname(year, month, 20, True),
+            cal.formatweekheader(2))
+        i = 0
+        for d in cal.itermonthdays(year, month):
+            if 0 == d:
+                f = '  '
+            else:
+                f = '%2d' % d
+            if 6 == i % 7:
+                f += '\n'
+            elif (now.day - 1) == d or now.day == d:
+                f += mark
+            else:
+                f += ' '
+            cm += f
+            i += 1
+
         qmk.Message().get()(cm)
 
 class DateCommand(qmk.Command):
