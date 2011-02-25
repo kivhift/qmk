@@ -24,6 +24,7 @@ class QuitCommand(qmk.Command):
 app = QtGui.QApplication([])
 app.setQuitOnLastWindowClosed(False)
 app.setWindowIcon(QtGui.QIcon(':images/qmk-icon.svg'))
+# {{{
 app.setStyleSheet('''\
 QLineEdit {
     background-color: #4b4b4b;
@@ -54,24 +55,19 @@ QListView {
     font-family: "Dejavu Sans Mono";
 }
 ''')
+# }}}
 
-# Make sure that these are instantiated and that they stay around.
-filt = qmk.InputFilter.get()
-msg = qmk.Message.get()
-ci = qmk.CommandInput.get()
-cm = qmk.CommandManager.get()
+qmk.InputFilter().setQMKKeyboardCallback(qmk.Engine.QMKCallback)
+qmk.InputFilter().enableQMKKeyboardCallback()
+qmk.InputFilter().setKeyboardCallback(qmk.Engine.hideMessageCallback)
+qmk.InputFilter().setMouseCallback(qmk.Engine.hideMessageCallback)
+qmk.InputFilter().setKeyboardWindowId(int(qmk.CommandInput().winId()))
 
-filt.setQMKKeyboardCallback(qmk.Engine.QMKCallback)
-filt.enableQMKKeyboardCallback()
-filt.setKeyboardCallback(qmk.Engine.hideMessageCallback)
-filt.setMouseCallback(qmk.Engine.hideMessageCallback)
-filt.setKeyboardWindowId(int(ci.winId()))
+qmk.CommandManager().registerCommands([QuitCommand()])
 
-cm.registerCommands([QuitCommand()])
+qmk.CommandManager().registerCommands(__import__('commands').commands())
+qmk.CommandInput().updateCompletions()
 
-cm.registerCommands(__import__('commands').commands())
-ci.updateCompletions()
-
-qmk.Message.get()('QMK has started...')
+qmk.Message()('QMK has started...')
 
 sys.exit(app.exec_())

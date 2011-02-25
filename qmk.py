@@ -10,17 +10,11 @@ from PyQt4 import QtSvg
 
 import qmk_resources
 
+from utils import Singleton
+
 class InputFilterError(Exception): pass
 
-class InputFilter(object):
-    __instance = None
-
-    @classmethod
-    def get(cls):
-        if cls.__instance is None:
-            cls.__instance = cls()
-        return cls.__instance
-
+class InputFilter(Singleton):
     def __init__(self, filter_lib = 'qmk-hook.dll'):
         # void F(int arg);
         self.__cbp = ctypes.CFUNCTYPE(None, ctypes.c_int)
@@ -34,6 +28,7 @@ class InputFilter(object):
         if self.__hook.install_mouse_hook():
             raise InputFilterError(
                 'Had trouble installing mouse hook.')
+        InputFilter.__init__ = Singleton._init_me_not
 
     def setQMKKeyboardCallback(self, cb):
         self.__qmkkbcb = self.__cbp(cb)
@@ -89,15 +84,7 @@ class Command(object):
     def action(self, arg):
         pass
 
-class Message(QtGui.QWidget):
-    __instance = None
-
-    @classmethod
-    def get(cls):
-        if cls.__instance is None:
-            cls.__instance = cls()
-        return cls.__instance
-
+class Message(Singleton, QtGui.QWidget):
     def __call__(self, text):
         self.setText(text)
         self.show()
@@ -134,25 +121,18 @@ QTextEdit {
         fg = self.frameGeometry()
         self.move(((ag.width() / 2) - ag.x()) - (fg.width() / 2),
             ((ag.height() / 2) - ag.y()) - (fg.height() / 2))
+        Message.__init__ = Singleton._init_me_not
 
     def setText(self, text):
         self.__te.setText(text)
 
     def show(self):
-        filt = InputFilter.get()
+        filt = InputFilter()
         filt.enableKeyboardCallback()
         filt.enableMouseCallback()
         QtGui.QWidget.show(self)
 
-class ErrorMessage(QtGui.QDialog):
-    __instance = None
-
-    @classmethod
-    def get(cls):
-        if cls.__instance is None:
-            cls.__instance = cls()
-        return cls.__instance
-
+class ErrorMessage(Singleton, QtGui.QDialog):
     def __call__(self, text):
         self.append(text)
         self.show()
@@ -188,6 +168,8 @@ QTextEdit {
         self.resize(ag.width() / 2, int(ag.width() / (1.0 + 5.0**0.5)))
         fg = self.frameGeometry()
         self.move(ag.width() - fg.width(), ag.height() - fg.height())
+
+        ErrorMessage.__init__ = Singleton._init_me_not
 
     def append(self, text):
         self.__te.append('%s: %s' % (
@@ -238,15 +220,7 @@ class Completer(QtGui.QCompleter):
                     return False
         return QtGui.QCompleter.eventFilter(self, obj, ev)
 
-class CommandInput(QtGui.QDialog):
-    __instance = None
-
-    @classmethod
-    def get(cls):
-        if cls.__instance is None:
-            cls.__instance = cls()
-        return cls.__instance
-
+class CommandInput(Singleton, QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
 
@@ -292,6 +266,8 @@ class CommandInput(QtGui.QDialog):
         ag = dt.availableGeometry(dt.primaryScreen())
         self.resize(ag.width() / 2, 0)
 
+        CommandInput.__init__ = Singleton._init_me_not
+
     def show(self):
         self.wasRejected = False
 ###     self.__cursor_pos = QtGui.QCursor.pos()
@@ -313,11 +289,11 @@ class CommandInput(QtGui.QDialog):
         part = cmd.split(None, 1)
 
         # Check arg count here, etc.
-        CommandManager.get().runCommand(part[0],
+        CommandManager().runCommand(part[0],
             part[1] if len(part) > 1 else None)
 
     def updateCompletions(self):
-        cn = CommandManager.get().commandNames()
+        cn = CommandManager().commandNames()
         if 0 == len(cn):
             self.__comp = None
         else:
@@ -325,17 +301,10 @@ class CommandInput(QtGui.QDialog):
             self.__comp.popup().setTabKeyNavigation(True)
         self.input.setCompleter(self.__comp)
 
-class CommandManager(object):
-    __instance = None
-
-    @classmethod
-    def get(cls):
-        if cls.__instance is None:
-            cls.__instance = cls()
-        return cls.__instance
-
+class CommandManager(Singleton):
     def __init__(self):
         self.__cmd = {}
+        CommandManager.__init__ = Singleton._init_me_not
 
     def registerCommands(self, cmds):
         for cmd in cmds:
@@ -349,9 +318,9 @@ class CommandManager(object):
                 self.__cmd['eval'].action(
                     '%s%s' % (name, '' if arg is None else ' ' + arg))
             else:
-                ErrorMessage.get()('Not found: "%s" <-- "%s"' % (name, arg))
+                ErrorMessage()('Not found: "%s" <-- "%s"' % (name, arg))
         except Exception, e:
-            ErrorMessage.get()('Problem: %s' % str(e))
+            ErrorMessage()('Problem: %s' % str(e))
 
     def commandNames(self):
         N = self.__cmd.keys()
@@ -364,7 +333,7 @@ class CommandManager(object):
 class Engine(object):
     @staticmethod
     def QMKCallback(qmk_down):
-        ci = CommandInput.get()
+        ci = CommandInput()
 
         if qmk_down:
             ci.input.clear()
@@ -386,9 +355,9 @@ class Engine(object):
     def hideMessageCallback(qmk_down):
         if qmk_down: return
 
-        msg = Message.get()
-        filt = InputFilter.get()
+        msg = Message()
         if msg.isVisible():
+            filt = InputFilter()
             filt.disableKeyboardCallback()
             filt.disableMouseCallback()
             msg.hide()

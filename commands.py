@@ -20,7 +20,7 @@ class ClipboardCommand(qmk.Command):
 
     def action(self, arg):
         if arg is None:
-            qmk.Message.get()(qmk.Clipboard.text())
+            qmk.Message()(qmk.Clipboard.text())
         else:
             qmk.Clipboard.setText(arg)
 
@@ -37,12 +37,12 @@ class EvalCommand(qmk.Command):
         try:
             result = str(eval(arg))
         except Exception, e:
-            qmk.ErrorMessage.get()('Had trouble eval()ing "%s": %s' % (
+            qmk.ErrorMessage()('Had trouble eval()ing "%s": %s' % (
                 arg, str(e)))
             return
 
         qmk.Clipboard.setText(result)
-        qmk.Message.get()(arg + ' --> ' + result)
+        qmk.Message()(arg + ' --> ' + result)
 
 class RunCommand(qmk.Command):
     '''Run arbitrary processes.'''
@@ -111,7 +111,7 @@ class CalendarCommand(qmk.Command):
             cm += f
             i += 1
 
-        qmk.Message().get()(cm)
+        qmk.Message()(cm)
 
 class DateCommand(qmk.Command):
     '''View the current date.'''
@@ -121,7 +121,7 @@ class DateCommand(qmk.Command):
 
     def action(self, arg):
         now = str(datetime.datetime.now())
-        qmk.Message().get()(now)
+        qmk.Message()(now)
 
 class GoogleCommand(qmk.Command):
     '''Google the given arguments.  A new tab will be opened in the
@@ -201,7 +201,7 @@ class HelpCommand(qmk.Command):
         f = file(self.__filename, 'wb')
         f.write('<html><head><title>QMK Help</title></head><body>')
         f.write('<h1>QMK Command Help</h1>')
-        cm = qmk.CommandManager.get()
+        cm = qmk.CommandManager()
         f.write('<table border="1"><tr><th>Name</th><th>Help</th></tr>')
         for name in cm.commandNames():
             cmd = cm.command(name)
@@ -283,7 +283,7 @@ class ConvertCommand(qmk.Command):
 
         setattr(co, fu, val)
 
-        qmk.Message.get()('%s %s --> %f %s' % (
+        qmk.Message()('%s %s --> %f %s' % (
             arg[0], fu, getattr(co, tu), tu))
 
 def commands():
