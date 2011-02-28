@@ -1,9 +1,14 @@
 import ctypes
 
+import win32api
+
 import qmk
+import utils
 
 class ComputerCommand(qmk.Command):
-    '''Hibernate, suspend, shutdown or reboot the computer or log off.'''
+    '''
+    Hibernate, suspend, shutdown, reboot or lock the computer or log off.
+    '''
     # These are from winuser.h.
     EWX_LOGOFF = 0
     EWX_POWEROFF = 8
@@ -12,26 +17,43 @@ class ComputerCommand(qmk.Command):
     def __init__(self):
         self._name = 'computer'
         self._help = self.__doc__
+        self._sss = ctypes.windll.powrprof.SetSuspendState
+        self._ewe = ctypes.windll.user32.ExitWindowsEx
+        self._gle = ctypes.windll.kernel32.GetLastError
+        self._lws = ctypes.windll.user32.LockWorkStation
+
+    def indicateError(self, ecode):
+        qmk.ErrorMessage()('%s problem: %s' % (utils.caller_function_name(),
+            win32api.FormatMessage(ecode).strip()))
 
     def hibernate(self):
-        ctypes.windll.powrprof.SetSuspendState(1, 0, 0)
+        if not self._sss(1, 0, 0):
+            self.indicateError(self._gle())
 
     def suspend(self):
-        ctypes.windll.powrprof.SetSuspendState(0, 0, 0)
+        if not self._sss(0, 0, 0):
+            self.indicateError(self._gle())
 
     def shutdown(self):
-        ctypes.windll.user32.ExitWindowsEx(ComputerCommand.EWX_POWEROFF, 0)
+        if not self._ewe(ComputerCommand.EWX_POWEROFF, 0):
+            self.indicateError(self._gle())
 
     def reboot(self):
-        ctypes.windll.user32.ExitWindowsEx(ComputerCommand.EWX_REBOOT, 0)
+        if not self._ewe(ComputerCommand.EWX_REBOOT, 0):
+            self.indicateError(self._gle())
+
+    def lock(self):
+        if not self._lws():
+            self.indicateError(self._gle())
 
     def logoff(self):
-        ctypes.windll.user32.ExitWindowsEx(ComputerCommand.EWX_LOGOFF, 0)
+        if not self._ewe(ComputerCommand.EWX_LOGOFF, 0):
+            self.indicateError(self._gle())
 
     def action(self, arg):
         if arg is None: return
 
-        for a in 'hibernate suspend shutdown reboot logoff'.split():
+        for a in 'hibernate suspend shutdown reboot lock logoff'.split():
             if a.startswith(arg): return getattr(self, a)()
 
         qmk.ErrorMessage()('Invalid request: %s' % arg)
