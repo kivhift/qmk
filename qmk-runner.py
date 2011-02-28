@@ -23,7 +23,7 @@ class QuitCommand(qmk.Command):
 modloadtuple = ('.py', 'rb', imp.PY_SOURCE)
 def load_qmkconfig(filename):
     with open(filename, 'rb') as f:
-        cfg = imp.load_module('qmkconfig', f, filename, modloadtuple)
+        cfg = imp.load_module('qmk-config', f, filename, modloadtuple)
 
     return cfg
 
@@ -42,13 +42,13 @@ def register_commands(cmds):
 
 optpar = optparse.OptionParser()
 optpar.add_option('-f', '--filename', dest = 'filename', default = None,
-    help = 'name of config file to use instead of ~/.qmk/qmkconfig.py')
+    help = 'name of config file to use instead of ~/.qmk/qmk-config.py')
 
 app = QtGui.QApplication(sys.argv)
 opts, args = optpar.parse_args()
 
 qmkconfig = load_qmkconfig(opts.filename if opts.filename is not None
-    else os.path.join(utils.get_user_info()['HOME'], '.qmk', 'qmkconfig.py'))
+    else os.path.join(utils.get_user_info()['HOME'], '.qmk', 'qmk-config.py'))
 register_commands(qmkconfig.commands)
 
 app.setQuitOnLastWindowClosed(False)
