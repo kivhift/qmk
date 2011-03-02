@@ -9,6 +9,7 @@ commands = [
         computer.py
         convert.py
         date.py
+        echo.py
         eval.py
         google.py
         help.py
