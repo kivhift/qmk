@@ -13,6 +13,7 @@ commands = [
         google.py
         help.py
         octopart.py
+        register-commands.py
         run.py
         wunderground.py
     '''.split())
