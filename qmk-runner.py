@@ -4,6 +4,7 @@ import os
 import sys
 import imp
 import optparse
+import glob
 
 from PyQt4 import QtCore, QtGui, QtXml, QtSvg
 
@@ -33,12 +34,17 @@ def register_commands(cmds):
         if not basedir:
             basedir = os.path.join(
                 utils.get_user_info()['HOME'], '.qmk', 'commands')
-        for fn in t[1]:
-            filename = os.path.join(basedir, fn)
-            modname = os.path.splitext(os.path.basename(fn))[0]
-            with open(filename, 'rb') as f:
-                c = imp.load_module(modname, f, filename, modloadtuple)
-            qmk.CommandManager().registerCommands(c.commands())
+
+        if not t[1]:
+            files = glob.glob(os.path.join(basedir, '*.py'))
+        else:
+            files = [ os.path.join(basedir, x) for x in t[1] ]
+
+        for fn in files:
+            with open(fn, 'rb') as f:
+                qmk.CommandManager().registerCommands(imp.load_module(
+                    os.path.splitext(os.path.basename(fn))[0], f, fn,
+                    modloadtuple).commands())
 
 optpar = optparse.OptionParser()
 optpar.add_option('-f', '--filename', dest = 'filename', default = None,
