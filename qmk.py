@@ -320,7 +320,7 @@ class CommandManager(Singleton):
             else:
                 ErrorMessage()('Not found: "%s" <-- "%s"' % (name, arg))
         except Exception, e:
-            ErrorMessage()('Problem: %s' % str(e))
+            ErrorMessage()('%s: %s' % (name, str(e)))
 
     def commandNames(self):
         N = self.__cmd.keys()
