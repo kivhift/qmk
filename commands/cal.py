@@ -41,26 +41,24 @@ class CalendarCommand(qmk.Command):
                     pass
 
         cal = calendar.TextCalendar(firstweekday=calendar.MONDAY)
-        mark = ' '
-        if year == now.year and month == now.month:
-            mark = ':'
-        cm = '%s\n%s\n' % (cal.formatmonthname(year, month, 20, True),
-            cal.formatweekheader(2))
+        lines = [ cal.formatmonthname(year, month, 20, True) ]
+        lines.append(cal.formatweekheader(2))
+
         i = 0
+        ln = ''
+        mark = '*' if year == now.year and month == now.month else ' '
         for d in cal.itermonthdays(year, month):
             if 0 == d:
-                f = '  '
+                ln += '   '
             else:
-                f = '%2d' % d
+                ln += '%2d%s' % (d, ' ' if now.day != d else mark)
+
             if 6 == i % 7:
-                f += '\n'
-            elif (now.day - 1) == d or now.day == d:
-                f += mark
-            else:
-                f += ' '
-            cm += f
+                lines.append(ln)
+                ln = ''
+
             i += 1
 
-        qmk.Message()(cm)
+        qmk.Message()('\n'.join(lines))
 
 def commands(): return [ CalendarCommand() ]
