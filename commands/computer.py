@@ -23,7 +23,7 @@ class ComputerCommand(qmk.Command):
         self._lws = ctypes.windll.user32.LockWorkStation
 
     def indicateError(self, ecode):
-        qmk.ErrorMessage()('%s problem: %s' % (utils.caller_function_name(),
+        raise RuntimeError('%s: %s' % (utils.caller_function_name(),
             win32api.FormatMessage(ecode).strip()))
 
     def hibernate(self):

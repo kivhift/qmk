@@ -1,5 +1,6 @@
 commands = [
     ('commands', '''
+        adjust-window.py
         amazon.py
         beolingus.py
         browse.py

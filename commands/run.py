@@ -9,6 +9,7 @@ class RunCommand(qmk.Command):
         self._help = self.__doc__
 
     def action(self, arg):
+        if arg is None: return
         pid = subprocess.Popen(arg).pid
 
 def commands(): return [ RunCommand() ]
