@@ -65,13 +65,10 @@ class InputFilter(Singleton):
 
 class Command(object):
     def __new__(cls, *args, **kwargs):
-        obj = object.__new__(cls, *args, **kwargs)
+        obj = object.__new__(cls)
         obj._name = None
         obj._help = 'No help for this command.'
         return obj
-
-    def __init__(self):
-        pass
 
     def __name(self):
         return self._name
@@ -220,6 +217,18 @@ class Completer(QtGui.QCompleter):
                     return False
         return QtGui.QCompleter.eventFilter(self, obj, ev)
 
+class CommandInputLineEdit(QtGui.QLineEdit):
+    def __init__(self, *a, **kw):
+        QtGui.QLineEdit.__init__(self)
+
+        self.postKeyPressEventCallbacks = {}
+
+    def keyPressEvent(self, event):
+        k = event.key()
+        QtGui.QLineEdit.keyPressEvent(self, event)
+        if self.postKeyPressEventCallbacks.has_key(k):
+            self.postKeyPressEventCallbacks[k]()
+
 class CommandInput(Singleton, QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
@@ -227,8 +236,16 @@ class CommandInput(Singleton, QtGui.QDialog):
         self.connect(self, QtCore.SIGNAL('rejected()'),
             self.setRejected)
 
-        self.input = QtGui.QLineEdit()
+        self.__completer = None
+        self.input = CommandInputLineEdit()
         self.input.setCursor(QtCore.Qt.BlankCursor)
+        self.input.postKeyPressEventCallbacks[
+            QtCore.Qt.Key_Up] = self.historyBackward
+        self.input.postKeyPressEventCallbacks[
+            QtCore.Qt.Key_Down] = self.historyForward
+
+        self.__history = []
+        self.__history_idx = 0
 
         self.__lo = QtGui.QVBoxLayout()
         self.__lo.setContentsMargins(0, 0, 0, 0)
@@ -268,6 +285,24 @@ class CommandInput(Singleton, QtGui.QDialog):
 
         CommandInput.__init__ = Singleton._init_me_not
 
+    def historyForward(self):
+        hl = len(self.__history)
+        if 0 == hl: return
+
+        self.__history_idx += 1
+        if self.__history_idx >= hl:
+            self.__history_idx = 0
+        self.input.setText(self.__history[self.__history_idx])
+
+    def historyBackward(self):
+        hl = len(self.__history)
+        if 0 == hl: return
+
+        self.__history_idx -= 1
+        if self.__history_idx < 0:
+            self.__history_idx = hl - 1
+        self.input.setText(self.__history[self.__history_idx])
+
     def show(self):
         self.wasRejected = False
 ###     self.__cursor_pos = QtGui.QCursor.pos()
@@ -278,6 +313,8 @@ class CommandInput(Singleton, QtGui.QDialog):
     def hide(self):
         QtGui.QDialog.hide(self)
 ###     QtGui.QCursor.setPos(self.__cursor_pos)
+        if self.__completer is not None:
+            self.__completer.popup().hide()
 
     def setRejected(self):
         self.wasRejected = True
@@ -289,17 +326,20 @@ class CommandInput(Singleton, QtGui.QDialog):
         part = cmd.split(None, 1)
 
         # Check arg count here, etc.
-        CommandManager().runCommand(part[0],
-            part[1] if len(part) > 1 else None)
+        if CommandManager().runCommand(part[0],
+                part[1] if len(part) > 1 else None):
+            if 0 == len(self.__history) or cmd != self.__history[-1]:
+                self.__history.append(cmd)
+            self.__history_idx = len(self.__history)
 
     def updateCompletions(self):
         cn = CommandManager().commandNames()
         if 0 == len(cn):
-            self.__comp = None
+            self.__completer = None
         else:
-            self.__comp = Completer(cn)
-            self.__comp.popup().setTabKeyNavigation(True)
-        self.input.setCompleter(self.__comp)
+            self.__completer = Completer(cn)
+            self.__completer.popup().setTabKeyNavigation(True)
+        self.input.setCompleter(self.__completer)
 
 class CommandManager(Singleton):
     def __init__(self):
@@ -311,6 +351,7 @@ class CommandManager(Singleton):
             self.__cmd[cmd.name] = cmd
 
     def runCommand(self, name, arg):
+        '''Return True if successful, False otherwise.'''
         try:
             if self.__cmd.has_key(name):
                 self.__cmd[name].action(arg)
@@ -319,8 +360,12 @@ class CommandManager(Singleton):
                     '%s%s' % (name, '' if arg is None else ' ' + arg))
             else:
                 ErrorMessage()('Not found: "%s" <-- "%s"' % (name, arg))
+                return False
         except Exception, e:
             ErrorMessage()('%s: %s' % (name, str(e)))
+            return False
+
+        return True
 
     def commandNames(self):
         N = self.__cmd.keys()
