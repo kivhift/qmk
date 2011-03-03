@@ -9,9 +9,8 @@ class RegisterCommandsCommand(qmk.Command):
         self._name = 'register-commands'
         self._help = self.__doc__
 
+    @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        if arg is None: return
-
         filename = arg
         modname = os.path.splitext(os.path.basename(filename))[0]
         with open(filename, 'rb') as f:

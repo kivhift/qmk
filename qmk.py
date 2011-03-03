@@ -81,6 +81,16 @@ class Command(object):
     def action(self, arg):
         pass
 
+    @staticmethod
+    def actionRequiresArgument(fn):
+        def ar(self, arg):
+            if arg is None: raise ValueError('Argument required.')
+            return fn(self, arg)
+        ar.__name__ = fn.__name__
+        ar.__doc__ = fn.__doc__
+        ar.__dict__.update(fn.__dict__)
+        return ar
+
 class Message(Singleton, QtGui.QWidget):
     def __call__(self, text):
         self.setText(text)

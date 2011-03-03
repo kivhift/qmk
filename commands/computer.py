@@ -50,12 +50,11 @@ class ComputerCommand(qmk.Command):
         if not self._ewe(ComputerCommand.EWX_LOGOFF, 0):
             self.indicateError(self._gle())
 
+    @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        if arg is None: return
-
         for a in 'hibernate suspend shutdown reboot lock logoff'.split():
             if a.startswith(arg): return getattr(self, a)()
 
-        qmk.ErrorMessage()('Invalid request: %s' % arg)
+        raise ValueError('Invalid request: %s' % arg)
 
 def commands(): return [ ComputerCommand() ]

@@ -8,8 +8,8 @@ class BrowseCommand(qmk.Command):
         self._name = 'browse'
         self._help = self.__doc__
 
+    @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        if arg is None: return
         webbrowser.open_new_tab(arg)
 
 def commands(): return [ BrowseCommand() ]

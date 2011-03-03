@@ -12,12 +12,10 @@ class AmazonCommand(qmk.Command):
         self.__baseURL = 'http://www.amazon.com/' \
             's?ie=UTF8&index=blended&field-keywords=%s'
 
+    @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        if arg is None: return
-        text = arg.strip()
-        if '' == text: return
         query = self.__baseURL % urllib.quote_plus(
-            ' '.join(text.split()).encode('utf-8'))
+            ' '.join(arg.split()).encode('utf-8'))
         webbrowser.open_new_tab(query)
 
 def commands(): return [ AmazonCommand() ]

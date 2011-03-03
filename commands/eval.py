@@ -11,14 +11,8 @@ class EvalCommand(qmk.Command):
     def action(self, arg):
         if arg is None:
             arg = str(qmk.Clipboard.text())
-            if '' == arg: return
-        try:
-            result = str(eval(arg))
-        except Exception, e:
-            qmk.ErrorMessage()('Had trouble eval()ing "%s": %s' % (
-                arg, str(e)))
-            return
 
+        result = str(eval(arg))
         qmk.Clipboard.setText(result)
         qmk.Message()(arg + ' --> ' + result)
 

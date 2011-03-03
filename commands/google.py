@@ -11,12 +11,9 @@ class GoogleCommand(qmk.Command):
         self._help = self.__doc__
         self.__baseURL = 'http://www.google.com/search?q=%s'
 
+    @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        if arg is None: return
-        text = arg.strip()
-        if '' == text: return
-        query = self.__baseURL % urllib.quote_plus(
-            ' '.join(text.split()).encode('utf-8'))
-        webbrowser.open_new_tab(query)
+        webbrowser.open_new_tab(self.__baseURL % urllib.quote_plus(
+            ' '.join(arg.split()).encode('utf-8')))
 
 def commands(): return [ GoogleCommand() ]

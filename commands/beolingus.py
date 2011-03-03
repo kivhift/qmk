@@ -12,12 +12,9 @@ class BeolingusCommand(qmk.Command):
         self.__baseURL = 'http://dict.tu-chemnitz.de/?query=%s' \
             '&service=deen&mini=1'
 
+    @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        if arg is None: return
-        text = arg.strip().split()[0]
-        if '' == text: return
-        query = self.__baseURL % urllib.quote_plus(
-            text.encode('latin_1'))
-        webbrowser.open_new_tab(query)
+        webbrowser.open_new_tab(
+            self.__baseURL % urllib.quote_plus(arg.encode('latin_1')))
 
 def commands(): return [ BeolingusCommand() ]
