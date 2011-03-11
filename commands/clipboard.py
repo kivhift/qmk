@@ -9,6 +9,8 @@ class ClipboardCommand(qmk.Command):
     def action(self, arg):
         if arg is None:
             qmk.Message()(qmk.Clipboard.text())
+        elif arg in ('-c', '--clear'):
+            qmk.Clipboard.setText('')
         else:
             qmk.Clipboard.setText(arg)
 
