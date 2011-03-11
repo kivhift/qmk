@@ -84,7 +84,10 @@ class Command(object):
     @staticmethod
     def actionRequiresArgument(fn):
         def ar(self, arg):
-            if arg is None: raise ValueError('Argument required.')
+            if arg is None:
+                arg = str(Clipboard.text())
+                if '' == arg:
+                    raise ValueError('Argument required.')
             return fn(self, arg)
         ar.__name__ = fn.__name__
         ar.__doc__ = fn.__doc__
