@@ -41,21 +41,26 @@ class CalendarCommand(qmk.Command):
                     pass
 
         cal = calendar.TextCalendar(firstweekday=calendar.MONDAY)
-        lines = [ cal.formatmonthname(year, month, 20, True) ]
-        lines.append(cal.formatweekheader(2))
+        lines = [ '     ' + cal.formatmonthname(year, month, 20, True) ]
+        lines.append('Wk | ' + cal.formatweekheader(2))
 
         i = 0
         ln = ''
         mark = '*' if year == now.year and month == now.month else ' '
+        a_day_in_week = 0
         for d in cal.itermonthdays(year, month):
             if 0 == d:
                 ln += '   '
             else:
                 ln += '%2d%s' % (d, ' ' if now.day != d else mark)
+                if 0 == a_day_in_week:
+                    a_day_in_week = d
 
             if 6 == i % 7:
-                lines.append(ln)
+                lines.append('%2d | %s' % (datetime.date(
+                    year, month, a_day_in_week).isocalendar()[1], ln))
                 ln = ''
+                a_day_in_week = 0
 
             i += 1
 
