@@ -64,6 +64,8 @@ class CalendarCommand(qmk.Command):
 
             i += 1
 
-        qmk.Message()('\n'.join(lines))
+        cal_text = '\n'.join(lines)
+        qmk.Clipboard.setText(cal_text)
+        qmk.Message()(cal_text)
 
 def commands(): return [ CalendarCommand() ]
