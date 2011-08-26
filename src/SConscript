@@ -1,0 +1,7 @@
+Import('env')
+
+e = env.Clone()
+
+qmk = e.SharedLibrary(source = ['qmk-hook.c'], no_import_lib = 1)
+e.AddPostAction(qmk, e['strip_all'])
+# vim: filetype=python

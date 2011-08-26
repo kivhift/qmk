@@ -1,7 +1,10 @@
-env = Environment(TOOLS=['mingw'])
-env.Append(CCFLAGS = '-O2 -Wall')
+env = Environment(
+    TOOLS=['mingw'],
+    CCFLAGS = '-Wextra -Wall -O2'
+)
 env['strip_all'] = Action('strip --strip-all $TARGET')
 
-qmk = env.SharedLibrary(source = ['qmk-hook.c'], no_import_lib = 1)
-env.AddPostAction(qmk, env['strip_all'])
-#vim:filetype=python
+env.SConscript('src/SConscript', variant_dir = 'build', duplicate = 0,
+    exports = 'env')
+
+# vim:filetype=python
