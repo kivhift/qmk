@@ -6,7 +6,7 @@ import imp
 import optparse
 import glob
 
-from PyQt4 import QtCore, QtGui, QtXml, QtSvg
+from PyQt4 import QtCore, QtGui
 
 import qmk
 import utils
@@ -58,7 +58,7 @@ qmkconfig = load_qmkconfig(opts.filename if opts.filename is not None
 register_commands(qmkconfig.commands)
 
 app.setQuitOnLastWindowClosed(False)
-app.setWindowIcon(QtGui.QIcon(':images/qmk-icon.svg'))
+app.setWindowIcon(QtGui.QIcon(':images/qmk-icon.png'))
 # {{{
 app.setStyleSheet('''\
 QLineEdit {

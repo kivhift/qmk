@@ -1,5 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-	<file>images/qmk-icon.svg</file>
+	<file>images/qmk-icon.png</file>
 </qresource>
 </RCC>

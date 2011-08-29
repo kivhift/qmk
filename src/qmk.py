@@ -3,10 +3,7 @@
 import ctypes
 import time
 
-from PyQt4 import QtCore
-from PyQt4 import QtGui
-from PyQt4 import QtXml
-from PyQt4 import QtSvg
+from PyQt4 import QtCore, QtGui
 
 import qrc_qmk_resources
 
@@ -274,7 +271,7 @@ class CommandInput(Singleton, QtGui.QDialog):
         self.__tim.addAction(self.__qa)
         self.__ti = QtGui.QSystemTrayIcon(self)
         self.__ti.setToolTip(self.tr('QMK'))
-        self.__ti.setIcon(QtGui.QIcon(':images/qmk-icon.svg'))
+        self.__ti.setIcon(QtGui.QIcon(':images/qmk-icon.png'))
         self.__ti.setContextMenu(self.__tim)
         self.__ti.show()
 
