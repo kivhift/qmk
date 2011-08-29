@@ -8,7 +8,7 @@ from PyQt4 import QtGui
 from PyQt4 import QtXml
 from PyQt4 import QtSvg
 
-import qmk_resources
+import qrc_qmk_resources
 
 from utils import Singleton
 

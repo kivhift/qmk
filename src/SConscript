@@ -1,7 +1,16 @@
+import scons_utilities as su
+
 Import('env')
 
 e = env.Clone()
 
 qmk = e.SharedLibrary(source = ['qmk-hook.c'], no_import_lib = 1)
 e.AddPostAction(qmk, e['strip_all'])
+
+su.setup_pyqt4_builders(e, Builder)
+
+qrc = su.pyrcc4(e, 'qmk-resources.qrc')
+e.AddPostAction([qrc], su.decrlf)
+su.carefully_install(e, '#src', qrc)
+
 # vim: filetype=python
