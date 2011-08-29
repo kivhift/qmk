@@ -1,5 +1,6 @@
 import ctypes
 import ctypes.wintypes
+import time
 
 import win32api
 
@@ -35,6 +36,9 @@ class AdjustWindowCommand(qmk.Command):
     pixels, give x-10: to the right by ten, give x+10.  To mix in absolute
     arguments with relative ones, just use =; e.g., w=200.  Any missing
     parameters use their current values.
+
+    The single argument "info" can also be given to get the corners of the
+    current window along with its width and height.
     '''
     def __init__(self):
         self._name = 'adjust-window'
@@ -55,6 +59,9 @@ class AdjustWindowCommand(qmk.Command):
         else:
             args = arg.split()
 
+        # Hold off a wee bit before grabbing the foreground-window handle since
+        # the command input has just been hidden.  The 100ms is heuristic.
+        time.sleep(0.1)
         rect = ctypes.wintypes.RECT()
         hwnd = self._gfw()
 
@@ -63,6 +70,14 @@ class AdjustWindowCommand(qmk.Command):
 
         if 0 == len(args):
             p = [ 0, 0, rect.right - rect.left, rect.bottom - rect.top, 1 ]
+        elif 1 == len(args) and 'info' == args[0]:
+            qmk.Message()(
+                '     Left-top: (%d, %d)\n'
+                ' Right-bottom: (%d, %d)\n'
+                'Width, height: %d, %d' % (
+                rect.left, rect.top, rect.right, rect.bottom,
+                rect.right - rect.left, rect.bottom - rect.top))
+            return
         elif utils.contains_any(arg, 'xywh'):
             p = [ rect.left, rect.top,
                 rect.right - rect.left, rect.bottom - rect.top, 1 ]
