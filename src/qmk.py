@@ -182,6 +182,16 @@ QTextEdit {
         self.__te.append('%s: %s' % (
             time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), text))
 
+def capture_and_show_exceptions(name):
+    def deco(fn):
+        def nfn(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except Exception, e:
+                ErrorMessage()('%s: %s' % (name, str(e)))
+        return nfn
+    return deco
+
 class Completer(QtGui.QCompleter):
     def setCurrentIndex(self, index):
         pu = self.popup()
