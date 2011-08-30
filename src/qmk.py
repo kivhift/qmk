@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import ctypes
+import optparse
 import time
 
 from PyQt4 import QtCore, QtGui
@@ -60,11 +61,26 @@ class InputFilter(Singleton):
     def injectFullKeystroke(self):
         self.__hook.inject_press_and_release()
 
+#formatted help with .format_help()
+class CommandOptionParser(optparse.OptionParser):
+    def __init__(self, *a, **kwa):
+        name = kwa.pop('name', None)
+        if name is not None and not kwa.has_key('usage'):
+            kwa['usage'] = '%s [options]' % name
+        if not kwa.has_key('add_help_option'):
+            kwa['add_help_option'] = False
+
+        optparse.OptionParser.__init__(self, *a, **kwa)
+
+    def error(self, msg):
+        raise RuntimeError(msg)
+
 class Command(object):
     def __new__(cls, *args, **kwargs):
         obj = object.__new__(cls)
         obj._name = None
         obj._help = 'No help for this command.'
+        obj._optpar = None
         return obj
 
     def __name(self):
@@ -72,7 +88,10 @@ class Command(object):
     name = property(fget = __name)
 
     def __help(self):
-        return self._help
+        if self._optpar is None:
+            return self._help
+        else:
+            return '%s\n%s' % (self._help, self._optpar.format_help())
     help = property(fget = __help)
 
     def action(self, arg):

@@ -1,6 +1,5 @@
 import ctypes
 import ctypes.wintypes
-import optparse
 import os
 
 import win32api
@@ -9,20 +8,6 @@ from PyQt4 import QtCore, QtGui
 
 import qmk
 import utils
-
-#formatted help with OP.format_help()
-class OP(optparse.OptionParser):
-    def __init__(self, *a, **kwa):
-        name = kwa.pop('name', None)
-        if name is not None and not kwa.has_key('usage'):
-            kwa['usage'] = '%s [options]' % name
-        if not kwa.has_key('add_help_option'):
-            kwa['add_help_option'] = False
-
-        optparse.OptionParser.__init__(self, *a, **kwa)
-
-    def error(self, msg):
-        raise RuntimeError(msg)
 
 class ScreenshotCommand(qmk.Command):
     '''
@@ -36,7 +21,7 @@ class ScreenshotCommand(qmk.Command):
         self._gwr = ctypes.windll.user32.GetWindowRect
         self._gle = ctypes.windll.kernel32.GetLastError
 
-        op = OP(name = self._name)
+        op = qmk.CommandOptionParser(name = self._name)
         op.add_option('-b', '--bare', dest = 'bare', default = False,
             action = 'store_true', help = 'grab window with titlebar, etc.')
         op.add_option('--clobber', dest = 'clobber', default = False,
