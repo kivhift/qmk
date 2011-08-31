@@ -8,11 +8,11 @@ from PyQt4 import QtCore, QtGui
 
 import qrc_qmk_resources
 
-from utils import Singleton
+import utils
 
 class InputFilterError(Exception): pass
 
-class InputFilter(Singleton):
+class InputFilter(utils.Singleton):
     def __init__(self, filter_lib = 'qmk-hook.dll'):
         # void F(int arg);
         self.__cbp = ctypes.CFUNCTYPE(None, ctypes.c_int)
@@ -26,7 +26,7 @@ class InputFilter(Singleton):
         if self.__hook.install_mouse_hook():
             raise InputFilterError(
                 'Had trouble installing mouse hook.')
-        InputFilter.__init__ = Singleton._init_me_not
+        InputFilter.__init__ = utils.Singleton._init_me_not
 
     def setQMKKeyboardCallback(self, cb):
         self.__qmkkbcb = self.__cbp(cb)
@@ -88,10 +88,11 @@ class Command(object):
     name = property(fget = __name)
 
     def __help(self):
+        wh = '\n\n'.join(utils.wrapped_paragraphs(self._help, 75))
         if self._optpar is None:
-            return self._help
+            return wh
         else:
-            return '%s\n%s' % (self._help, self._optpar.format_help())
+            return '%s\n\n%s' % (wh, self._optpar.format_help())
     help = property(fget = __help)
 
     def action(self, arg):
@@ -110,7 +111,7 @@ class Command(object):
         ar.__dict__.update(fn.__dict__)
         return ar
 
-class Message(Singleton, QtGui.QWidget):
+class Message(utils.Singleton, QtGui.QWidget):
     def __call__(self, text):
         self.setText(text)
         self.show()
@@ -147,7 +148,7 @@ QTextEdit {
         fg = self.frameGeometry()
         self.move(((ag.width() / 2) - ag.x()) - (fg.width() / 2),
             ((ag.height() / 2) - ag.y()) - (fg.height() / 2))
-        Message.__init__ = Singleton._init_me_not
+        Message.__init__ = utils.Singleton._init_me_not
 
     def setText(self, text):
         self.__te.setText(text)
@@ -158,7 +159,7 @@ QTextEdit {
         filt.enableMouseCallback()
         QtGui.QWidget.show(self)
 
-class ErrorMessage(Singleton, QtGui.QDialog):
+class ErrorMessage(utils.Singleton, QtGui.QDialog):
     def __call__(self, text):
         self.append(text)
         self.show()
@@ -195,7 +196,7 @@ QTextEdit {
         fg = self.frameGeometry()
         self.move(ag.width() - fg.width(), ag.height() - fg.height())
 
-        ErrorMessage.__init__ = Singleton._init_me_not
+        ErrorMessage.__init__ = utils.Singleton._init_me_not
 
     def append(self, text):
         self.__te.append('%s: %s' % (
@@ -268,7 +269,7 @@ class CommandInputLineEdit(QtGui.QLineEdit):
         if self.postKeyPressEventCallbacks.has_key(k):
             self.postKeyPressEventCallbacks[k]()
 
-class CommandInput(Singleton, QtGui.QDialog):
+class CommandInput(utils.Singleton, QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
 
@@ -322,7 +323,7 @@ class CommandInput(Singleton, QtGui.QDialog):
         ag = dt.availableGeometry(dt.primaryScreen())
         self.resize(ag.width() / 2, 0)
 
-        CommandInput.__init__ = Singleton._init_me_not
+        CommandInput.__init__ = utils.Singleton._init_me_not
 
     def historyForward(self):
         hl = len(self.__history)
@@ -380,10 +381,10 @@ class CommandInput(Singleton, QtGui.QDialog):
             self.__completer.popup().setTabKeyNavigation(True)
         self.input.setCompleter(self.__completer)
 
-class CommandManager(Singleton):
+class CommandManager(utils.Singleton):
     def __init__(self):
         self.__cmd = {}
-        CommandManager.__init__ = Singleton._init_me_not
+        CommandManager.__init__ = utils.Singleton._init_me_not
 
     def registerCommands(self, cmds):
         for cmd in cmds:
