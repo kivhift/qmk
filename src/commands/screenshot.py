@@ -50,8 +50,18 @@ class ScreenshotCommand(qmk.Command):
         else:
             fn = o.filename
 
-        if os.path.exists(fn) and not o.clobber:
-            raise RuntimeError('%s exists and not clobbering' % fn)
+        afn = os.path.abspath(fn)
+
+        if os.path.exists(fn):
+            if os.path.isfile(fn):
+                if not o.clobber:
+                    raise RuntimeError('%s exists and not clobbering.' % fn)
+            else:
+                raise RuntimeError('%s exists and is not a file.' % fn)
+
+        dn = os.path.dirname(afn)
+        if not os.path.exists(dn):
+            raise RuntimeError('%s is not a valid directory.' % dn)
 
         R = ctypes.wintypes.RECT()
         hwnd = self._gfw()
@@ -67,7 +77,11 @@ class ScreenshotCommand(qmk.Command):
             pm = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId(),
                 R.left, R.top, R.right - R.left, R.bottom - R.top)
 
-        pm.save(fn, 'PNG')
+        if pm is None:
+            raise RuntimeError('Had trouble grabbing window.')
+
+        if not pm.save(fn, 'PNG'):
+            raise RuntimeError('Had trouble saving to %s.' % afn)
 
         qmk.Message()('Screenshot saved to %s.' % fn)
 
