@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<todo-list version="1.0" description="TODOs for QMK">
+  <todo>
+    <synopsis>Add screenshot command.</synopsis>
+    <priority>none</priority>
+    <notes>It would be useful to be able to take screenshots of the current window or
+the whole desktop.  There could be a default file name or the option to
+give one explicitly.  (Websites too via QWebKit?)</notes>
+    <created>2011 07 14 09 43 13 -0400</created>
+    <last-modified>2011 07 14 09 43 13 -0400</last-modified>
+    <completed>false</completed>
+  </todo>
+  <todo>
+    <synopsis>Make adjust-window, with no args., give current info.</synopsis>
+    <priority>none</priority>
+    <notes>It might be handy to be able to just see what the current position of the
+current window is.
+[2011-08-29 14:39:13] Actually, &quot;no args&quot; already means something.  Thus,
+I've added an &quot;info&quot; argument to get at the window info.</notes>
+    <created>2011 08 26 15 33 51 -0400</created>
+    <last-modified>2011 08 29 14 40 05 -0400</last-modified>
+    <completed>true</completed>
+  </todo>
+  <todo>
+    <synopsis>Add support for PySide.</synopsis>
+    <priority>none</priority>
+    <notes>[2011-03-09 13:53:49] I worked a little bit on switching stuff over to
+PySide (under VMWare) and it wasn't too bad.
+ - use plain winId()
+ - use ctypes.pythonapi.PyCObject_AsVoidPtr in setKeyboardWindowId()
+ - setup PyCObject_AsVoidPtr:
+   .restype = ctypes.c_void_p
+   .argtypes = [ ctypes.py_object ]
+ - don't use isEmpty() since unicode strings are returned instead of
+   QStrings
+
+How hard would it be to support both at once?</notes>
+    <created>2011 09 07 15 58 26 -0400</created>
+    <last-modified>2011 09 07 15 58 26 -0400</last-modified>
+    <completed>false</completed>
+  </todo>
+</todo-list>
