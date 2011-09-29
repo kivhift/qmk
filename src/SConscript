@@ -6,6 +6,7 @@ e = env.Clone()
 
 qmk = e.SharedLibrary(source = ['qmk-hook.c'], no_import_lib = 1)
 e.AddPostAction(qmk, e['strip_all'])
+su.carefully_install(e, '#src', qmk)
 
 su.setup_pyqt4_builders(e, Builder)
 
