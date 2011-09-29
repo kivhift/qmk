@@ -18,7 +18,7 @@ class QuitCommand(qmk.Command):
         self._help = self.__doc__
 
     def action(self, arg):
-        # XXX Perhaps add some fancier shutdown stuff here.
+        qmk.CommandManager().shutdownCommands()
         QtGui.qApp.quit()
 
 modloadtuple = ('.py', 'rb', imp.PY_SOURCE)

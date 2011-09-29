@@ -26,34 +26,34 @@ class ComputerCommand(qmk.Command):
         raise RuntimeError('%s: %s' % (utils.caller_function_name(),
             win32api.FormatMessage(ecode).strip()))
 
-    def hibernate(self):
+    def _hibernate(self):
         if not self._sss(1, 0, 0):
             self.indicateError(self._gle())
 
-    def suspend(self):
+    def _suspend(self):
         if not self._sss(0, 0, 0):
             self.indicateError(self._gle())
 
-    def shutdown(self):
+    def _shutdown(self):
         if not self._ewe(ComputerCommand.EWX_POWEROFF, 0):
             self.indicateError(self._gle())
 
-    def reboot(self):
+    def _reboot(self):
         if not self._ewe(ComputerCommand.EWX_REBOOT, 0):
             self.indicateError(self._gle())
 
-    def lock(self):
+    def _lock(self):
         if not self._lws():
             self.indicateError(self._gle())
 
-    def logoff(self):
+    def _logoff(self):
         if not self._ewe(ComputerCommand.EWX_LOGOFF, 0):
             self.indicateError(self._gle())
 
     @qmk.Command.actionRequiresArgument
     def action(self, arg):
         for a in 'hibernate suspend shutdown reboot lock logoff'.split():
-            if a.startswith(arg): return getattr(self, a)()
+            if a.startswith(arg): return getattr(self, '_%s' % a)()
 
         raise ValueError('Invalid request: %s' % arg)
 

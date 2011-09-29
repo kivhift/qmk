@@ -101,6 +101,9 @@ class Command(object):
     def action(self, arg):
         pass
 
+    def shutdown(self):
+        pass
+
     @staticmethod
     def actionRequiresArgument(fn):
         def ar(self, arg):
@@ -417,6 +420,11 @@ class CommandManager(utils.Singleton):
 
     def command(self, name):
         return self.__cmd[name]
+
+    def shutdownCommands(self):
+        for k in self.__cmd.keys():
+            self.__cmd[k].shutdown()
+            del self.__cmd[k]
 
 class Engine(object):
     @staticmethod
