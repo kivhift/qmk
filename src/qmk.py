@@ -61,6 +61,9 @@ class InputFilter(utils.Singleton):
     def injectFullKeystroke(self):
         self.__hook.inject_press_and_release()
 
+    def foregroundWindowId(self):
+        return self.__hook.get_foreground_window_id()
+
 #formatted help with .format_help()
 class CommandOptionParser(optparse.OptionParser):
     def __init__(self, *a, **kwa):

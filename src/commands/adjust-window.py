@@ -1,6 +1,5 @@
 import ctypes
 import ctypes.wintypes
-import time
 
 import win32api
 
@@ -44,7 +43,6 @@ class AdjustWindowCommand(qmk.Command):
         self._name = 'adjust-window'
         self._help = self.__doc__
 
-        self._gfw = ctypes.windll.user32.GetForegroundWindow
         self._gwr = ctypes.windll.user32.GetWindowRect
         self._mw = ctypes.windll.user32.MoveWindow
         self._gle = ctypes.windll.kernel32.GetLastError
@@ -59,11 +57,8 @@ class AdjustWindowCommand(qmk.Command):
         else:
             args = arg.split()
 
-        # Hold off a wee bit before grabbing the foreground-window handle since
-        # the command input has just been hidden.  The 100ms is heuristic.
-        time.sleep(0.1)
         rect = ctypes.wintypes.RECT()
-        hwnd = self._gfw()
+        hwnd = qmk.InputFilter().foregroundWindowId()
 
         if not self._gwr(hwnd, ctypes.byref(rect)):
             self.indicateError(self._gle())
