@@ -32,8 +32,7 @@ def register_commands(cmds):
     for t in cmds:
         basedir = t[0]
         if not basedir:
-            basedir = os.path.join(
-                utils.get_user_info()['HOME'], '.qmk', 'commands')
+            basedir = os.path.join(qmk.base_dir(), 'commands')
 
         if not t[1]:
             files = glob.glob(os.path.join(basedir, '*.py'))
@@ -54,7 +53,7 @@ app = QtGui.QApplication(sys.argv)
 opts, args = optpar.parse_args()
 
 qmkconfig = load_qmkconfig(opts.filename if opts.filename is not None
-    else os.path.join(utils.get_user_info()['HOME'], '.qmk', 'qmk-config.py'))
+    else os.path.join(qmk.base_dir(), 'qmk-config.py'))
 register_commands(qmkconfig.commands)
 
 app.setQuitOnLastWindowClosed(False)
@@ -100,6 +99,8 @@ qmk.InputFilter().enableQMKKeyboardCallback()
 qmk.InputFilter().setKeyboardCallback(qmk.Engine.hideMessageCallback)
 qmk.InputFilter().setMouseCallback(qmk.Engine.hideMessageCallback)
 qmk.InputFilter().setKeyboardWindowId(int(qmk.CommandInput().winId()))
+
+os.chdir(qmk.base_dir())
 
 qmk.Message()('QMK has started...')
 

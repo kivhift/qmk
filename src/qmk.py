@@ -2,6 +2,7 @@
 
 import ctypes
 import optparse
+import os
 import time
 
 from PyQt4 import QtCore, QtGui
@@ -466,3 +467,6 @@ class Clipboard(object):
     @staticmethod
     def text():
         return QtGui.qApp.clipboard().text()
+
+def base_dir():
+    return os.path.join(utils.get_user_info()['HOME'], '.qmk')
