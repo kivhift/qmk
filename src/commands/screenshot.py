@@ -35,6 +35,10 @@ class ScreenshotCommand(qmk.Command):
             help = 'number of seconds to wait before screenshot')
         self._optpar = op
 
+        self._base_dir = os.path.join(qmk.base_dir(), 'screenshots')
+        if not os.path.exists(self._base_dir):
+            os.mkdir(self._base_dir)
+
     def _indicateError(self, ecode):
         raise RuntimeError(
             'Error: %s' % (win32api.FormatMessage(ecode).strip()))
@@ -49,6 +53,9 @@ class ScreenshotCommand(qmk.Command):
             fn = '%s.png' % o.filename
         else:
             fn = o.filename
+
+        if '' == os.path.dirname(fn):
+            fn = os.path.join(self._base_dir, fn)
 
         afn = os.path.abspath(fn)
 
