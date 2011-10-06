@@ -109,7 +109,7 @@ class Command(object):
     def actionRequiresArgument(fn):
         def ar(self, arg):
             if arg is None:
-                arg = str(Clipboard.text())
+                arg = Clipboard.text()
                 if '' == arg:
                     raise ValueError('Argument required.')
             return fn(self, arg)
@@ -466,7 +466,7 @@ class Clipboard(object):
 
     @staticmethod
     def text():
-        return QtGui.qApp.clipboard().text()
+        return unicode(QtGui.qApp.clipboard().text())
 
 def base_dir():
     return os.path.join(utils.get_user_info()['HOME'], '.qmk')

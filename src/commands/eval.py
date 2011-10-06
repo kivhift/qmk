@@ -10,7 +10,7 @@ class EvalCommand(qmk.Command):
 
     def action(self, arg):
         if arg is None:
-            arg = str(qmk.Clipboard.text())
+            arg = qmk.Clipboard.text()
 
         result = str(eval(arg))
         qmk.Clipboard.setText(result)
