@@ -470,3 +470,11 @@ class Clipboard(object):
 
 def base_dir():
     return os.path.join(utils.get_user_info()['HOME'], '.qmk')
+
+def left_word_and_rest(line):
+    if not line:
+        return '', ''
+
+    w = line.split(None, 1)
+
+    return w[0], w[1] if len(w) > 1 else ''
