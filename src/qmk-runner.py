@@ -67,8 +67,8 @@ QLineEdit {
     border-style: solid;
     border-color: #ffffff;
     border-radius: 5px;
-    font-size: 20px;
-    font-family: "Dejavu Sans Mono";
+    font-size: 24px;
+    font-family: "Ubuntu Mono";
     padding: 3px;
     margin: 0px;
 }
@@ -85,8 +85,8 @@ QListView {
     border-style: solid;
     border-color: #00ff00;
     border-radius: 5px;
-    font-size: 14px;
-    font-family: "Dejavu Sans Mono";
+    font-size: 18px;
+    font-family: "Ubuntu Mono";
 }
 ''')
 # }}}

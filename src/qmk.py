@@ -132,7 +132,8 @@ QTextEdit {
     color: #00ff00;
     border: 2px dotted #00ff00;
     border-radius: 4px;
-    font-family: "Dejavu Sans Mono";
+    font-family: "Ubuntu Mono";
+    font-size: 14px;
 }
 ''')
         self.setWindowFlags(QtCore.Qt.ToolTip |
@@ -148,13 +149,6 @@ QTextEdit {
         self.__lo.addWidget(self.__te)
         self.setLayout(self.__lo)
 
-        self.resize(324, 200)
-
-        dt = QtGui.qApp.desktop()
-        ag = dt.availableGeometry(dt.primaryScreen())
-        fg = self.frameGeometry()
-        self.move(((ag.width() / 2) - ag.x()) - (fg.width() / 2),
-            ((ag.height() / 2) - ag.y()) - (fg.height() / 2))
         Message.__init__ = utils.Singleton._init_me_not
 
     def setText(self, text):
@@ -164,6 +158,13 @@ QTextEdit {
         filt = InputFilter()
         filt.enableKeyboardCallback()
         filt.enableMouseCallback()
+
+        dt = QtGui.qApp.desktop()
+        ag = dt.availableGeometry(dt.primaryScreen())
+        self.resize(ag.width() / 2, int(ag.width() / (1.0 + 5.0**0.5)))
+        fg = self.frameGeometry()
+        self.move((ag.width() - fg.width()) / 2, 0)
+
         QtGui.QWidget.show(self)
 
 class ErrorMessage(utils.Singleton, QtGui.QDialog):
@@ -180,7 +181,8 @@ QTextEdit {
     color: #ffff00;
     border: 2px dotted #00ff00;
     border-radius: 4px;
-    font-family: "Dejavu Sans Mono";
+    font-family: "Ubuntu Mono";
+    font-size: 14px;
 }
 ''')
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint
@@ -196,18 +198,21 @@ QTextEdit {
         self.__lo.addWidget(self.__te)
         self.setLayout(self.__lo)
 
-        dt = QtGui.qApp.desktop()
-        ag = dt.availableGeometry(dt.primaryScreen())
-
-        self.resize(ag.width() / 2, int(ag.width() / (1.0 + 5.0**0.5)))
-        fg = self.frameGeometry()
-        self.move(ag.width() - fg.width(), ag.height() - fg.height())
-
         ErrorMessage.__init__ = utils.Singleton._init_me_not
 
     def append(self, text):
         self.__te.append('%s: %s' % (
             time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), text))
+
+    def show(self):
+        dt = QtGui.qApp.desktop()
+        ag = dt.availableGeometry(dt.primaryScreen())
+
+        self.resize(ag.width() / 2, int(ag.width() / (1.0 + 5.0**0.5)))
+        fg = self.frameGeometry()
+        self.move((ag.width() - fg.width()) / 2, ag.height() - fg.height())
+
+        QtGui.QDialog.show(self)
 
 def capture_and_show_exceptions(name):
     def deco(fn):
@@ -322,14 +327,6 @@ class CommandInput(utils.Singleton, QtGui.QDialog):
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setWindowOpacity(0.85)
 
-        self.__cursor_pos = QtCore.QPoint(0, 0)
-
-        self.move(0, 0)
-
-        dt = QtGui.qApp.desktop()
-        ag = dt.availableGeometry(dt.primaryScreen())
-        self.resize(ag.width() / 2, 0)
-
         CommandInput.__init__ = utils.Singleton._init_me_not
 
     def historyForward(self):
@@ -352,14 +349,17 @@ class CommandInput(utils.Singleton, QtGui.QDialog):
 
     def show(self):
         self.wasRejected = False
-###     self.__cursor_pos = QtGui.QCursor.pos()
+
+        dt = QtGui.qApp.desktop()
+        ag = dt.availableGeometry(dt.primaryScreen())
+        self.resize(ag.width() / 2, 0)
+        fg = self.frameGeometry()
+        self.move((ag.width() - fg.width()) / 2, 0)
+
         QtGui.QDialog.show(self)
-        # This is a kludge.  The window should be unmovable.
-        #QtGui.QCursor.setPos(10, 10)
 
     def hide(self):
         QtGui.QDialog.hide(self)
-###     QtGui.QCursor.setPos(self.__cursor_pos)
         if self.__completer is not None:
             self.__completer.popup().hide()
 
