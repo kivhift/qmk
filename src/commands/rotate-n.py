@@ -2,7 +2,7 @@
 # Copyright (c) 2011-2012 Joshua Hughes <kivhift@gmail.com>
 #
 import qmk
-import utils
+import pu.utils
 
 class RotateNCommand(qmk.Command):
     '''Perform a Caesar cipher and return the result.'''
@@ -12,6 +12,6 @@ class RotateNCommand(qmk.Command):
 
     @qmk.Command.actionRequiresArgument
     def action(self, arg):
-        qmk.Message()(utils.rotn(arg))
+        qmk.Message()(pu.utils.rotn(arg))
 
 def commands(): return [ RotateNCommand() ]

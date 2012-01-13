@@ -11,11 +11,11 @@ from PyQt4 import QtCore, QtGui
 
 import qrc_qmk_resources
 
-import utils
+import pu.utils
 
 class InputFilterError(Exception): pass
 
-class InputFilter(utils.Singleton):
+class InputFilter(pu.utils.Singleton):
     def __init__(self, filter_lib = 'qmk-hook.dll'):
         # void F(int arg);
         self.__cbp = ctypes.CFUNCTYPE(None, ctypes.c_int)
@@ -29,7 +29,7 @@ class InputFilter(utils.Singleton):
         if self.__hook.install_mouse_hook():
             raise InputFilterError(
                 'Had trouble installing mouse hook.')
-        InputFilter.__init__ = utils.Singleton._init_me_not
+        InputFilter.__init__ = pu.utils.Singleton._init_me_not
 
     def setQMKKeyboardCallback(self, cb):
         self.__qmkkbcb = self.__cbp(cb)
@@ -94,7 +94,7 @@ class Command(object):
     name = property(fget = __name)
 
     def __help(self):
-        wh = '\n\n'.join(utils.wrapped_paragraphs(self._help, 75))
+        wh = '\n\n'.join(pu.utils.wrapped_paragraphs(self._help, 75))
         if self._optpar is None:
             return wh
         else:
@@ -120,7 +120,7 @@ class Command(object):
         ar.__dict__.update(fn.__dict__)
         return ar
 
-class Message(utils.Singleton, QtGui.QWidget):
+class Message(pu.utils.Singleton, QtGui.QWidget):
     def __call__(self, text):
         self.setText(text)
         self.show()
@@ -151,7 +151,7 @@ QTextEdit {
         self.__lo.addWidget(self.__te)
         self.setLayout(self.__lo)
 
-        Message.__init__ = utils.Singleton._init_me_not
+        Message.__init__ = pu.utils.Singleton._init_me_not
 
     def setText(self, text):
         self.__te.setText(text)
@@ -169,7 +169,7 @@ QTextEdit {
 
         QtGui.QWidget.show(self)
 
-class ErrorMessage(utils.Singleton, QtGui.QDialog):
+class ErrorMessage(pu.utils.Singleton, QtGui.QDialog):
     def __call__(self, text):
         self.append(text)
         self.show()
@@ -200,7 +200,7 @@ QTextEdit {
         self.__lo.addWidget(self.__te)
         self.setLayout(self.__lo)
 
-        ErrorMessage.__init__ = utils.Singleton._init_me_not
+        ErrorMessage.__init__ = pu.utils.Singleton._init_me_not
 
     def append(self, text):
         self.__te.append('%s: %s' % (
@@ -283,7 +283,7 @@ class CommandInputLineEdit(QtGui.QLineEdit):
         if self.postKeyPressEventCallbacks.has_key(k):
             self.postKeyPressEventCallbacks[k]()
 
-class CommandInput(utils.Singleton, QtGui.QDialog):
+class CommandInput(pu.utils.Singleton, QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
 
@@ -329,7 +329,7 @@ class CommandInput(utils.Singleton, QtGui.QDialog):
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setWindowOpacity(0.85)
 
-        CommandInput.__init__ = utils.Singleton._init_me_not
+        CommandInput.__init__ = pu.utils.Singleton._init_me_not
 
     def historyForward(self):
         hl = len(self.__history)
@@ -390,10 +390,10 @@ class CommandInput(utils.Singleton, QtGui.QDialog):
             self.__completer.popup().setTabKeyNavigation(True)
         self.input.setCompleter(self.__completer)
 
-class CommandManager(utils.Singleton):
+class CommandManager(pu.utils.Singleton):
     def __init__(self):
         self.__cmd = {}
-        CommandManager.__init__ = utils.Singleton._init_me_not
+        CommandManager.__init__ = pu.utils.Singleton._init_me_not
 
     def registerCommands(self, cmds):
         for cmd in cmds:
@@ -471,7 +471,7 @@ class Clipboard(object):
         return unicode(QtGui.qApp.clipboard().text())
 
 def base_dir():
-    return os.path.join(utils.get_user_info()['HOME'], '.qmk')
+    return os.path.join(pu.utils.get_user_info()['HOME'], '.qmk')
 
 def left_word_and_rest(line):
     if not line:

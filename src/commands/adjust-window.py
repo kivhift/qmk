@@ -7,7 +7,7 @@ import ctypes.wintypes
 import win32api
 
 import qmk
-import utils
+import pu.utils
 
 def adjust(coord, arg):
     tmp = coord
@@ -76,7 +76,7 @@ class AdjustWindowCommand(qmk.Command):
                 rect.left, rect.top, rect.right, rect.bottom,
                 rect.right - rect.left, rect.bottom - rect.top))
             return
-        elif utils.contains_any(arg, 'xywh'):
+        elif pu.utils.contains_any(arg, 'xywh'):
             p = [ rect.left, rect.top,
                 rect.right - rect.left, rect.bottom - rect.top, 1 ]
             n = dict(x = 0, y = 1, w = 2, h = 3)

@@ -6,7 +6,7 @@ import ctypes
 import win32api
 
 import qmk
-import utils
+import pu.utils
 
 class ComputerCommand(qmk.Command):
     '''
@@ -26,7 +26,7 @@ class ComputerCommand(qmk.Command):
         self._lws = ctypes.windll.user32.LockWorkStation
 
     def indicateError(self, ecode):
-        raise RuntimeError('%s: %s' % (utils.caller_function_name(),
+        raise RuntimeError('%s: %s' % (pu.utils.caller_function_name(),
             win32api.FormatMessage(ecode).strip()))
 
     def _hibernate(self):

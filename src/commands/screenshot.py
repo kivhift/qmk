@@ -10,7 +10,7 @@ import win32api
 from PyQt4 import QtCore, QtGui
 
 import qmk
-import utils
+import pu.utils
 
 class ScreenshotCommand(qmk.Command):
     '''
@@ -51,7 +51,7 @@ class ScreenshotCommand(qmk.Command):
         o = self._opts
 
         if '' == o.filename:
-            fn = 'screenshot-%s.png' % utils.dt_str(sep = '')
+            fn = 'screenshot-%s.png' % pu.utils.dt_str(sep = '')
         elif not o.filename.endswith(('.PNG', '.png')):
             fn = '%s.png' % o.filename
         else:

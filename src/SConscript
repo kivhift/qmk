@@ -1,7 +1,8 @@
 #
 # Copyright (c) 2009-2012 Joshua Hughes <kivhift@gmail.com>
 #
-import scons_utilities as su
+import pu.scons.utils as su
+import pu.scons.qt4 as squ
 
 Import('env')
 
@@ -11,9 +12,9 @@ qmk = e.SharedLibrary(source = ['qmk-hook.c'], no_import_lib = 1)
 e.AddPostAction(qmk, e['strip_all'])
 su.carefully_install(e, '#src', qmk)
 
-su.setup_pyqt4_builders(e, Builder)
+squ.setup_pyqt4_builders(e, Builder)
 
-qrc = su.pyrcc4(e, 'qmk-resources.qrc')
+qrc = squ.pyrcc4(e, 'qmk-resources.qrc')
 e.AddPostAction([qrc], su.decrlf)
 su.carefully_install(e, '#src', qrc)
 

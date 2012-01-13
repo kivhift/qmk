@@ -11,7 +11,6 @@ import glob
 from PyQt4 import QtCore, QtGui
 
 import qmk
-import utils
 
 class QuitCommand(qmk.Command):
     '''Use this command to quit.'''
