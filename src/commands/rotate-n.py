@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2011-2012 Joshua Hughes <kivhift@gmail.com>
+#
 import qmk
 import utils
 

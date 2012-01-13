@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2010-2012 Joshua Hughes <kivhift@gmail.com>
+#
 import qmk
 
 from conversion.pressure import Pressure

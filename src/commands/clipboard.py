@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2010-2012 Joshua Hughes <kivhift@gmail.com>
+#
 import qmk
 
 class ClipboardCommand(qmk.Command):

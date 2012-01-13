@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2011-2012 Joshua Hughes <kivhift@gmail.com>
+#
 # This is inspired by the project at https://github.com/holman/boom.
 
 import json

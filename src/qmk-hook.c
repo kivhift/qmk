@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2009-2012 Joshua Hughes <kivhift@gmail.com>
+ */
 #include <windows.h>
 
 typedef void (*hook_callback_t)(int);

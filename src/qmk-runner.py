@@ -1,5 +1,7 @@
 #!/usr/bin/python
-
+#
+# Copyright (c) 2009-2012 Joshua Hughes <kivhift@gmail.com>
+#
 import os
 import sys
 import imp

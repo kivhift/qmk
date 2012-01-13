@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2010-2012 Joshua Hughes <kivhift@gmail.com>
+#
 from math import *
 
 import qmk
