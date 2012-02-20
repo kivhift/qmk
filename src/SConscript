@@ -2,7 +2,7 @@
 # Copyright (c) 2009-2012 Joshua Hughes <kivhift@gmail.com>
 #
 import pu.scons.utils as su
-import pu.scons.qt4 as squ
+import pu.scons.pyqt4 as squ
 
 Import('env')
 
