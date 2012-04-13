@@ -71,9 +71,9 @@ class InputFilter(pu.utils.Singleton):
 class CommandOptionParser(optparse.OptionParser):
     def __init__(self, *a, **kwa):
         name = kwa.pop('name', None)
-        if name is not None and not kwa.has_key('usage'):
+        if name is not None and 'usage' not in kwa:
             kwa['usage'] = '%s [options]' % name
-        if not kwa.has_key('add_help_option'):
+        if 'add_help_option' not in kwa:
             kwa['add_help_option'] = False
 
         optparse.OptionParser.__init__(self, *a, **kwa)
@@ -280,7 +280,7 @@ class CommandInputLineEdit(QtGui.QLineEdit):
     def keyPressEvent(self, event):
         k = event.key()
         QtGui.QLineEdit.keyPressEvent(self, event)
-        if self.postKeyPressEventCallbacks.has_key(k):
+        if k in self.postKeyPressEventCallbacks:
             self.postKeyPressEventCallbacks[k]()
 
 class CommandInput(pu.utils.Singleton, QtGui.QDialog):
@@ -402,9 +402,9 @@ class CommandManager(pu.utils.Singleton):
     def runCommand(self, name, arg):
         '''Return True if successful, False otherwise.'''
         try:
-            if self.__cmd.has_key(name):
+            if name in self.__cmd:
                 self.__cmd[name].action(arg)
-            elif self.__cmd.has_key('eval'):
+            elif 'eval' in self.__cmd:
                 self.__cmd['eval'].action(
                     '%s%s' % (name, '' if arg is None else ' ' + arg))
             else:

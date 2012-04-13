@@ -35,6 +35,16 @@ class MFTSCommand(qmk.Command):
 
         return nodes, leaf
 
+    def _invalid_leaf(self, node, leaf):
+        return leaf not in node or isinstance(node[leaf], dict)
+
+    def _valid_subnode(self, node, subnode):
+        return subnode in node and isinstance(node[subnode], dict)
+
+    def _stash_stash(self):
+        with open(self._stash_file, 'wb') as f:
+            json.dump(self._stash, f, sort_keys = True, indent = 4)
+
     def _add(self, arg):
         if not arg:
             raise ValueError('add: Need reference to work with.')
@@ -50,24 +60,23 @@ class MFTSCommand(qmk.Command):
         sn = []
         for n in nodes:
             sn.append(n)
-            if not d.has_key(n):
+            if n not in d:
                 d[n] = {}
-            elif type(d[n]) is not dict:
+            elif not isinstance(d[n], dict):
                 raise ValueError(
                     'add: %s is invalid.  There is a snippet @ %s' % (
                     ref, '.'.join(sn)))
 
             d = d[n]
 
-        if d.has_key(leaf) and type(d[leaf]) is dict:
+        if self._valid_subnode(d, leaf):
             # XXX: Ask if this is what's wanted.
             raise ValueError(
                 'add: trying to blow away extant sub-list @ %s' % ref)
 
         d[leaf] = snip
 
-        with open(self._stash_file, 'wb') as f:
-            json.dump(self._stash, f)
+        self._stash_stash()
 
     def __ref_only(self, arg, pre = ''):
         ref, _x = qmk.left_word_and_rest(arg)
@@ -85,10 +94,10 @@ class MFTSCommand(qmk.Command):
         sn = []
         for n in nodes:
             sn.append(n)
-            if not d.has_key(n):
+            if n not in d:
                 raise ValueError('%s%s is invalid.  No sub-list @ %s' % (
                     pre, ref, '.'.join(sn)))
-            elif type(d[n]) is not dict:
+            elif not isinstance(d[n], dict):
                 raise ValueError('%s%s is invalid.  Snippet @ %s' % (
                     pre, ref, '.'.join(sn)))
             d = d[n]
@@ -100,7 +109,7 @@ class MFTSCommand(qmk.Command):
 
         d = self.__get_sub_dict(ref, nodes, pre)
 
-        if not d.has_key(leaf) or type(d[leaf]) is dict:
+        if self._invalid_leaf(d, leaf):
             raise ValueError('%sNo snippet @ %s' % (pre, ref))
 
         return d[leaf]
@@ -125,7 +134,7 @@ class MFTSCommand(qmk.Command):
             pad = '  '
             nodes, leaf = self.__nodes_and_leaf(ref)
             d = self.__get_sub_dict(ref, nodes, p)
-            if d.has_key(leaf) and type(d[leaf]) is dict:
+            if self._valid_subnode(d, leaf):
                 d = d[leaf]
             else:
                 raise ValueError('%s%s is not a sub-list.' % (p, ref))
@@ -134,7 +143,7 @@ class MFTSCommand(qmk.Command):
         keys.sort()
 
         for k in keys:
-            if type(d[k]) is dict:
+            if isinstance(d[k], dict):
                 ls.append('%s%s. (%d)' % (pad, k, len(d[k])))
             else:
                 ls.append('%s%s %s' % (pad, k, d[k]))
@@ -151,7 +160,7 @@ class MFTSCommand(qmk.Command):
         nodes, leaf = self.__nodes_and_leaf(ref)
         d = self.__get_sub_dict(ref, nodes, p)
 
-        if not d.has_key(leaf) or type(d[leaf]) is dict:
+        if self._invalid_leaf(d, leaf):
             raise ValueError('%sNo snippet @ %s' % (p, ref))
 
         del d[leaf]
@@ -161,8 +170,7 @@ class MFTSCommand(qmk.Command):
             d = self.__get_sub_dict(ref, nodes, p)
             del d[leaf]
 
-        with open(self._stash_file, 'wb') as f:
-            json.dump(self._stash, f)
+        self._stash_stash()
 
     def action(self, arg):
         if arg is None:
