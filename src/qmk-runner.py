@@ -104,5 +104,8 @@ qmk.InputFilter().setKeyboardWindowId(int(qmk.CommandInput().winId()))
 os.chdir(qmk.base_dir())
 
 qmk.Message()('QMK has started...')
+# Instantiate ErrorMessage in case it's eventually called from another thread
+# to avoid parental confusion.
+qmk.ErrorMessage()
 
 sys.exit(app.exec_())

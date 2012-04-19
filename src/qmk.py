@@ -172,7 +172,8 @@ QTextEdit {
 class ErrorMessage(pu.utils.Singleton, QtGui.QDialog):
     def __call__(self, text):
         self.append(text)
-        self.show()
+        # In case we're called from another thread...
+        QtCore.QTimer.singleShot(0, self.show)
 
     def __init__(self):
         QtGui.QDialog.__init__(self)
