@@ -39,8 +39,11 @@ class AdjustWindowCommand(qmk.Command):
     arguments with relative ones, just use =; e.g., w=200.  Any missing
     parameters use their current values.
 
-    The single argument "info" can also be given to get the corners of the
+    The single argument "info" can be given to get the corners of the
     current window along with its width and height.
+
+    The single argument "desktop-info" can be given to get information about
+    the desktop geometry.
     '''
     def __init__(self):
         self._name = 'adjust-window'
@@ -68,14 +71,33 @@ class AdjustWindowCommand(qmk.Command):
 
         if 0 == len(args):
             p = [ 0, 0, rect.right - rect.left, rect.bottom - rect.top, 1 ]
-        elif 1 == len(args) and 'info' == args[0]:
-            qmk.Message()(
-                '     Left-top: (%d, %d)\n'
-                ' Right-bottom: (%d, %d)\n'
-                'Width, height: %d, %d' % (
-                rect.left, rect.top, rect.right, rect.bottom,
-                rect.right - rect.left, rect.bottom - rect.top))
-            return
+        elif 1 == len(args) and args[0] in ('info', 'desktop-info'):
+            a0 = args[0]
+            if 'info' == a0:
+                qmk.Message()(
+                    '     Left-top: (%d, %d)\n'
+                    ' Right-bottom: (%d, %d)\n'
+                    'Width, height: %d, %d' % (
+                    rect.left, rect.top, rect.right, rect.bottom,
+                    rect.right - rect.left, rect.bottom - rect.top))
+                return
+            elif 'desktop-info' == a0:
+                qad = qmk.QtGui.QApplication.desktop()
+                sc = qad.screenCount()
+                shift = ' ' * 8
+                msg = '  %sScreen count: %d\n%sPrimary screen: %d' % (
+                        shift, sc, shift, qad.primaryScreen())
+
+                for i in xrange(sc):
+                    sg = qad.screenGeometry(i)
+                    msg += '\n%2d:    Screen Geometry: %d, %d' % (
+                        i, sg.width(), sg.height())
+                    ag = qad.availableGeometry(i)
+                    msg += '\n    Available geometry: %d, %d' % (
+                        ag.width(), ag.height())
+
+                qmk.Message()(msg)
+                return
         elif pu.utils.contains_any(arg, 'xywh'):
             p = [ rect.left, rect.top,
                 rect.right - rect.left, rect.bottom - rect.top, 1 ]
