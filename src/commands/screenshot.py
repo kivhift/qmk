@@ -7,8 +7,6 @@ import os
 
 import win32api
 
-from PyQt4 import QtCore, QtGui
-
 import qmk
 import pu.utils
 
@@ -26,7 +24,7 @@ class ScreenshotCommand(qmk.Command):
 
         op = qmk.CommandOptionParser(name = self._name)
         op.add_option('-b', '--bare', dest = 'bare', default = False,
-            action = 'store_true', help = 'grab window with titlebar, etc.')
+            action = 'store_true', help = 'grab window without titlebar, etc.')
         op.add_option('--clobber', dest = 'clobber', default = False,
             action = 'store_true', help = 'clobber file if it exists')
         op.add_option('-d', '--desktop', dest = 'desktop', default = False,
@@ -80,11 +78,13 @@ class ScreenshotCommand(qmk.Command):
             self._indicateError(self._gle())
 
         if o.desktop:
-            pm = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId())
+            pm = qmk.QtGui.QPixmap.grabWindow(
+                qmk.QtGui.QApplication.desktop().winId())
         elif o.bare:
-            pm = QtGui.QPixmap.grabWindow(hwnd)
+            pm = qmk.QtGui.QPixmap.grabWindow(hwnd)
         else:
-            pm = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId(),
+            pm = qmk.QtGui.QPixmap.grabWindow(
+                qmk.QtGui.QApplication.desktop().winId(),
                 R.left, R.top, R.right - R.left, R.bottom - R.top)
 
         if pm is None:
@@ -99,8 +99,7 @@ class ScreenshotCommand(qmk.Command):
         self._opts, args = self._optpar.parse_args(
             args = [] if arg is None else arg.split())
 
-        QtCore.QTimer.singleShot(1000 * self._opts.wait, self._take_snapshot)
-
-        return
+        qmk.QtCore.QTimer.singleShot(
+            1000 * self._opts.wait, self._take_snapshot)
 
 def commands(): return [ ScreenshotCommand() ]
