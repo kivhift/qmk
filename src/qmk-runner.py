@@ -8,9 +8,12 @@ import imp
 import optparse
 import glob
 
-from PyQt4 import QtCore, QtGui
-
 import qmk
+import pu.utils
+
+def _quit():
+    qmk.CommandManager().shutdownCommands()
+    qmk.QtGui.qApp.quit()
 
 class QuitCommand(qmk.Command):
     '''Use this command to quit.'''
@@ -19,8 +22,17 @@ class QuitCommand(qmk.Command):
         self._help = self.__doc__
 
     def action(self, arg):
-        qmk.CommandManager().shutdownCommands()
-        QtGui.qApp.quit()
+        _quit()
+
+class RestartCommand(qmk.Command):
+    '''Use this command to restart on the fly.'''
+    def __init__(self):
+        self._name = 'restart'
+        self._help = self.__doc__
+
+    def action(self, arg):
+        _quit()
+        pu.utils.restart(pu.utils.cwd_at_import)
 
 modloadtuple = ('.py', 'rb', imp.PY_SOURCE)
 def load_qmkconfig(filename):
@@ -50,7 +62,7 @@ optpar = optparse.OptionParser()
 optpar.add_option('-f', '--filename', dest = 'filename', default = None,
     help = 'name of config file to use instead of ~/.qmk/qmk-config.py')
 
-app = QtGui.QApplication(sys.argv)
+app = qmk.QtGui.QApplication(sys.argv)
 opts, args = optpar.parse_args()
 
 qmkconfig = load_qmkconfig(opts.filename if opts.filename is not None
@@ -58,7 +70,7 @@ qmkconfig = load_qmkconfig(opts.filename if opts.filename is not None
 register_commands(qmkconfig.commands)
 
 app.setQuitOnLastWindowClosed(False)
-app.setWindowIcon(QtGui.QIcon(':images/qmk-icon.png'))
+app.setWindowIcon(qmk.QtGui.QIcon(':images/qmk-icon.png'))
 # {{{
 app.setStyleSheet('''\
 QLineEdit {
@@ -92,7 +104,7 @@ QListView {
 ''')
 # }}}
 
-qmk.CommandManager().registerCommands([QuitCommand()])
+qmk.CommandManager().registerCommands([QuitCommand(), RestartCommand()])
 qmk.CommandInput().updateCompletions()
 
 qmk.InputFilter().setQMKKeyboardCallback(qmk.Engine.QMKCallback)
