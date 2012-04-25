@@ -2,9 +2,12 @@
 # Copyright (c) 2012 Joshua Hughes <kivhift@gmail.com>
 #
 import os
+import shlex
 import subprocess
+import sys
 import tempfile
 import threading
+import webbrowser
 
 import qmk
 import pu.utils
@@ -20,6 +23,11 @@ class LogCommand(qmk.Command):
         self._base_dir = os.path.join(qmk.base_dir(), 'logs')
         if not os.path.exists(self._base_dir):
             os.mkdir(self._base_dir, 0755)
+
+        op = qmk.CommandOptionParser(name = self._name)
+        op.add_option('-v', '--view', dest = 'view', default = False,
+            action = 'store_true', help = 'view current log in webbrowser')
+        self._optpar = op
 
     @qmk.capture_and_show_exceptions('log')
     def _make_entry(self, type_):
@@ -59,13 +67,45 @@ class LogCommand(qmk.Command):
                     ('', '.. Editing finished: ' + end_time, '', '')))
             os.remove(entry_tmp_file)
 
+    @qmk.capture_and_show_exceptions('log')
+    def _show_log(self, type_):
+        import docutils.core
+
+        entry_file = os.path.join(self._base_dir, type_,
+            '%s-%s.rst' % (type_, pu.utils.ym_str('-')))
+        html_file = entry_file + '.html'
+        style_file = os.path.join(self._base_dir, 'log-style.css')
+
+        if not os.path.exists(entry_file):
+            raise ValueError('%s log does not exist' % type_)
+
+        pub = docutils.core.Publisher()
+        pub.set_components(reader_name = 'standalone',
+            parser_name = 'restructuredtext', writer_name = 'html')
+        # Use .get_settings() so as to not have the command-line arguments
+        # processed when calling .publish().  It has to be called after
+        # .set_components() but before .set_source() and .set_destination() or
+        # else bad things happen.
+        pub.get_settings()
+        pub.set_source(source_path = entry_file)
+        pub.set_destination(destination_path = html_file)
+        if os.path.exists(style_file):
+            pub.settings.stylesheet_path = style_file
+        pub.publish()
+        webbrowser.open_new_tab('file:///' + html_file.replace('\\', '/'))
+
     def action(self, arg):
-        if arg is None:
+        opts, args = self._optpar.parse_args(
+            args = [] if arg is None else shlex.split(
+                (arg if sys.hexversion >= 0x02070300 else str(arg))))
+        if 0 == len(args):
             subj = 'work'
         else:
-            subj = arg.strip()
+            subj = args[0]
 
         # Don't want to block so fire off a thread to do the actual work.
-        threading.Thread(target = self._make_entry, args = (subj,)).start()
+        threading.Thread(
+            target = self._show_log if opts.view else self._make_entry,
+            args = (subj,)).start()
 
 def commands(): return [ LogCommand() ]
