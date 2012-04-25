@@ -171,7 +171,7 @@ QTextEdit {
 
 class ErrorMessage(pu.utils.Singleton, QtGui.QDialog):
     def __call__(self, text):
-        self.append(text)
+        self._prepend(text)
         # In case we're called from another thread...
         QtCore.QTimer.singleShot(0, self.show)
 
@@ -201,11 +201,15 @@ QTextEdit {
         self.__lo.addWidget(self.__te)
         self.setLayout(self.__lo)
 
+        self._msgs = []
+
         ErrorMessage.__init__ = pu.utils.Singleton._init_me_not
 
-    def append(self, text):
-        self.__te.append('%s: %s' % (
+    def _prepend(self, text):
+        self._msgs.insert(0, '%s: %s' % (
             time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), text))
+        self.__te.clear()
+        self.__te.setText('\n'.join(self._msgs))
 
     def show(self):
         dt = QtGui.qApp.desktop()
