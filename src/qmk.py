@@ -315,9 +315,13 @@ class CommandInput(pu.utils.Singleton, QtGui.QDialog):
         self.__qa = QtGui.QAction('&Quit', self)
         self.connect(self.__qa, QtCore.SIGNAL('triggered()'),
             QtGui.qApp, QtCore.SLOT('quit()'))
+        self.__re = QtGui.QAction('&Restart', self)
+        self.connect(self.__re, QtCore.SIGNAL('triggered()'),
+            self._restart)
 
         self.__tim = QtGui.QMenu(self)
         self.__tim.addAction(self.__qa)
+        self.__tim.addAction(self.__re)
         self.__ti = QtGui.QSystemTrayIcon(self)
         self.__ti.setToolTip(self.tr('QMK'))
         self.__ti.setIcon(QtGui.QIcon(':images/qmk-icon.png'))
@@ -335,6 +339,9 @@ class CommandInput(pu.utils.Singleton, QtGui.QDialog):
         self.setWindowOpacity(0.85)
 
         CommandInput.__init__ = pu.utils.Singleton._init_me_not
+
+    def _restart(self):
+        pu.utils.restart(pu.utils.cwd_at_import)
 
     def historyForward(self):
         hl = len(self.__history)
