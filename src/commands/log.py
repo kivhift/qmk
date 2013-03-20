@@ -69,30 +69,15 @@ class LogCommand(qmk.Command):
 
     @qmk.capture_and_show_exceptions('log')
     def _show_log(self, type_):
-        import docutils.core
-
         entry_file = os.path.join(self._base_dir, type_,
             '%s-%s.rst' % (type_, pu.utils.ym_str('-')))
-        html_file = entry_file + '.html'
         style_file = os.path.join(self._base_dir, 'log-style.css')
 
         if not os.path.exists(entry_file):
             raise ValueError('%s log does not exist' % type_)
 
-        pub = docutils.core.Publisher()
-        pub.set_components(reader_name = 'standalone',
-            parser_name = 'restructuredtext', writer_name = 'html')
-        # Use .get_settings() so as to not have the command-line arguments
-        # processed when calling .publish().  It has to be called after
-        # .set_components() but before .set_source() and .set_destination() or
-        # else bad things happen.
-        pub.get_settings()
-        pub.set_source(source_path = entry_file)
-        pub.set_destination(destination_path = html_file)
-        if os.path.exists(style_file):
-            pub.settings.stylesheet_path = style_file
-        pub.publish()
-        webbrowser.open_new_tab('file:///' + html_file.replace('\\', '/'))
+        pu.utils.rst2html(entry_file, view = True,
+            style_file = style_file if os.path.exists(style_file) else None)
 
     def action(self, arg):
         opts, args = self._optpar.parse_args(
